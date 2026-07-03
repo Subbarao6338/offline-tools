@@ -1,6 +1,12 @@
 package omni.toolbox.ui.screens.ai
 
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.*
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -13,17 +19,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import omni.toolbox.ui.components.ToolScreen
-import omni.toolbox.data.image.FilterEngine
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.compose.ui.platform.LocalContext
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import omni.toolbox.ui.components.ToolScreen
+import java.io.OutputStream
 
 @Composable
 fun FaceSwapScreen(navController: NavHostController) {
@@ -57,23 +65,23 @@ fun FaceSwapScreen(navController: NavHostController) {
                 onClick = {
                     scope.launch {
                         isProcessing = true
-                        withContext(Dispatchers.IO) {
-                            try {
-                                val inputStream = context.contentResolver.openInputStream(targetImageUri!!)
-                                val bitmap = BitmapFactory.decodeStream(inputStream)
-                                if (bitmap != null) {
-                                    // Actual transformation (using Vintage as a placeholder for a "swap" look)
-                                    val result = FilterEngine.applyTransformations(
-                                        bitmap,
-                                        listOf(omni.toolbox.data.image.ColorMatrixTransformation(android.graphics.ColorMatrix(omni.toolbox.data.image.ImageFilters.Vintage)))
-                                    )
+                        try {
+                            val sourceBmp = loadBitmap(context, sourceImageUri!!)
+                            val targetBmp = loadBitmap(context, targetImageUri!!)
+                            if (sourceBmp != null && targetBmp != null) {
+                                val result = performFaceSwap(context, sourceBmp, targetBmp)
+                                if (result != null) {
                                     resultBitmap = result
+                                } else {
+                                    Toast.makeText(context, "Face not detected in one of the images.", Toast.LENGTH_SHORT).show()
                                 }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        } finally {
+                            isProcessing = false
                         }
-                        isProcessing = false
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -97,14 +105,110 @@ fun FaceSwapScreen(navController: NavHostController) {
                         contentScale = ContentScale.Fit
                     )
                 }
-                Button(onClick = { /* Save result */ }, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            val saved = saveBitmapToGallery(context, resultBitmap!!)
+                            withContext(Dispatchers.Main) {
+                                if (saved) Toast.makeText(context, "Image saved to gallery", Toast.LENGTH_SHORT).show()
+                                else Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Download Result")
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Note: This tool uses local ML Kit Face Detection to align faces. For best results, use clear, front-facing photos.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline
+            )
         }
     }
+}
+
+private suspend fun loadBitmap(context: Context, uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
+    try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        BitmapFactory.decodeStream(inputStream)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+private suspend fun performFaceSwap(context: Context, source: Bitmap, target: Bitmap): Bitmap? = withContext(Dispatchers.Default) {
+    val options = FaceDetectorOptions.Builder()
+        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+        .build()
+    val detector = FaceDetection.getClient(options)
+
+    val sourceImage = InputImage.fromBitmap(source, 0)
+    val targetImage = InputImage.fromBitmap(target, 0)
+
+    val sourceFaces = detector.process(sourceImage).await()
+    val targetFaces = detector.process(targetImage).await()
+
+    if (sourceFaces.isEmpty() || targetFaces.isEmpty()) return@withContext null
+
+    val resultBmp = target.copy(target.config ?: Bitmap.Config.ARGB_8888, true)
+    val canvas = Canvas(resultBmp)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    val sourceFace = sourceFaces[0]
+    val sourceRect = sourceFace.boundingBox
+    val x = sourceRect.left.coerceIn(0, source.width - 1)
+    val y = sourceRect.top.coerceIn(0, source.height - 1)
+    val width = sourceRect.width().coerceIn(1, source.width - x)
+    val height = sourceRect.height().coerceIn(1, source.height - y)
+
+    // Extract source face
+    val faceBmp = Bitmap.createBitmap(source, x, y, width, height)
+
+    for (targetFace in targetFaces) {
+        val targetRect = targetFace.boundingBox
+
+        // Simple overlay with scaling
+        val scaledFace = Bitmap.createScaledBitmap(faceBmp, targetRect.width(), targetRect.height(), true)
+
+        // Draw the face onto the target
+        canvas.drawBitmap(scaledFace, targetRect.left.toFloat(), targetRect.top.toFloat(), paint)
+    }
+
+    resultBmp
+}
+
+private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
+    val filename = "FaceSwap_${System.currentTimeMillis()}.jpg"
+    var fos: OutputStream? = null
+    var success = false
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/FaceSwap")
+            }
+            val imageUri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            fos = imageUri?.let { context.contentResolver.openOutputStream(it) }
+        } else {
+            val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
+            val image = java.io.File(imagesDir, filename)
+            fos = java.io.FileOutputStream(image)
+        }
+        success = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos!!)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        fos?.close()
+    }
+    return success
 }
 
 @Composable

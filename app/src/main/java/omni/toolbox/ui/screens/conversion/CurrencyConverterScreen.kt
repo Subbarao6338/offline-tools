@@ -1,18 +1,25 @@
 package omni.toolbox.ui.screens.conversion
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
-import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import omni.toolbox.ui.components.ToolScreen
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun CurrencyConverterScreen(navController: NavHostController) {
@@ -22,19 +29,14 @@ fun CurrencyConverterScreen(navController: NavHostController) {
     var amount by remember { mutableStateOf("") }
     var fromCurrency by remember { mutableStateOf("USD") }
     var toCurrency by remember { mutableStateOf("EUR") }
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    // Initial rates
+    // Initial rates fallback
     val initialRates = mapOf(
-        "USD" to 1.0,
-        "EUR" to 0.92,
-        "GBP" to 0.79,
-        "JPY" to 151.0,
-        "AUD" to 1.52,
-        "CAD" to 1.35,
-        "CHF" to 0.90,
-        "CNY" to 7.23,
-        "INR" to 83.3,
-        "BRL" to 5.05
+        "USD" to 1.0, "EUR" to 0.92, "GBP" to 0.79, "JPY" to 151.0,
+        "AUD" to 1.52, "CAD" to 1.35, "CHF" to 0.90, "CNY" to 7.23,
+        "INR" to 83.3, "BRL" to 5.05, "AED" to 3.67, "AFN" to 71.2,
+        "ALL" to 94.5, "AMD" to 395.0, "ANG" to 1.79, "AOA" to 833.0
     )
 
     var rates by remember {
@@ -50,7 +52,48 @@ fun CurrencyConverterScreen(navController: NavHostController) {
         )
     }
 
-    val currencies = rates.keys.toList()
+    val currencies = remember(rates) { rates.keys.toList().sorted() }
+
+    val client = remember {
+        OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .build()
+    }
+
+    suspend fun refreshRates() {
+        isRefreshing = true
+        withContext(Dispatchers.IO) {
+            try {
+                // Using a public free API (frankfurter.app is a good alternative without API key)
+                val request = Request.Builder()
+                    .url("https://api.exchangerate-api.com/v4/latest/USD")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            val json = JSONObject(body)
+                            val ratesObj = json.getJSONObject("rates")
+                            val newRates = mutableMapOf<String, Double>()
+                            ratesObj.keys().forEach { newRates[it] = ratesObj.getDouble(it) }
+
+                            withContext(Dispatchers.Main) {
+                                rates = newRates
+                                prefs.edit().putString("latest", JSONObject(newRates as Map<*, *>).toString()).apply()
+                                prefs.edit().putLong("last_update", System.currentTimeMillis()).apply()
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                withContext(Dispatchers.Main) { isRefreshing = false }
+            }
+        }
+    }
 
     val result = try {
         val value = amount.toDoubleOrNull() ?: 0.0
@@ -60,14 +103,32 @@ fun CurrencyConverterScreen(navController: NavHostController) {
         0.0
     }
 
-    // Perspective: Simulation of rate fetching and caching
     LaunchedEffect(Unit) {
-        // In a real app, fetch from API here. For now, we "cache" the initial/stored rates.
-        val json = JSONObject(rates as Map<*, *>).toString()
-        prefs.edit().putString("latest", json).apply()
+        val lastUpdate = prefs.getLong("last_update", 0)
+        // Refresh if older than 24 hours
+        if (System.currentTimeMillis() - lastUpdate > 24 * 60 * 60 * 1000) {
+            refreshRates()
+        }
     }
 
-    ToolScreen(title = "Currency Converter", onBack = { navController.popBackStack() }) { padding ->
+    ToolScreen(
+        title = "Currency Converter",
+        onBack = { navController.popBackStack() },
+        actions = {
+            if (isRefreshing) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            } else {
+                val refreshScope = rememberCoroutineScope()
+                IconButton(onClick = {
+                    refreshScope.launch {
+                        refreshRates()
+                    }
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                }
+            }
+        }
+    ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             OutlinedTextField(
                 value = amount,
@@ -103,6 +164,11 @@ fun CurrencyConverterScreen(navController: NavHostController) {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+            val lastUpdateStr = remember(rates) {
+                val last = prefs.getLong("last_update", 0)
+                if (last == 0L) "never" else java.text.DateFormat.getDateTimeInstance().format(java.util.Date(last))
+            }
+            Text("Rates updated: $lastUpdateStr", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
             Text("Rates are cached for offline use.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
         }
     }
