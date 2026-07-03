@@ -43,10 +43,13 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) {
         selectedFiles = it
     }
+    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) {
+        selectedFiles = it
+    }
     var isProcessing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    ToolScreen(title = title, onBack = { navController.popBackStack() }) { padding ->
+    ToolScreen(title = title, onBack = { navController.popBackStack() }, toolRoute = "pdf_tools_group") { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,13 +67,19 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (selectedFiles.isEmpty()) {
-                Button(onClick = { launcher.launch("application/pdf") }) {
+            if (selectedFiles.isEmpty() && title != "Text to PDF") {
+                Button(onClick = {
+                    if (title == "Images to PDF") {
+                        imageLauncher.launch("image/*")
+                    } else {
+                        launcher.launch("application/pdf")
+                    }
+                }) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Select PDF Files")
+                    Text(if (title == "Images to PDF") "Select Images" else "Select PDF Files")
                 }
-            } else {
+            } else if (selectedFiles.isNotEmpty() || title == "Text to PDF") {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("${selectedFiles.size} file(s) selected", fontWeight = FontWeight.Bold)
@@ -89,6 +98,7 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                 var pdfAuthor by remember { mutableStateOf("") }
                 var pdfSubject by remember { mutableStateOf("") }
                 var pdfKeywords by remember { mutableStateOf("") }
+                var textContent by remember { mutableStateOf("") }
 
                 PdfToolOptions(
                     title,
@@ -98,7 +108,8 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                     pdfTitle, { pdfTitle = it },
                     pdfAuthor, { pdfAuthor = it },
                     pdfSubject, { pdfSubject = it },
-                    pdfKeywords, { pdfKeywords = it }
+                    pdfKeywords, { pdfKeywords = it },
+                    textContent, { textContent = it }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -129,6 +140,28 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                                             merger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly())
                                             withContext(Dispatchers.Main) {
                                                 Toast.makeText(context, "Merged PDF saved to ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                    "Text to PDF" -> {
+                                        if (textContent.isNotEmpty()) {
+                                            val outPath = File(outputDir, "text_${System.currentTimeMillis()}.pdf")
+                                            omni.toolbox.utils.PdfUtils.textToPdf(textContent, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "PDF created: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        } else {
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "Please enter some text", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    }
+                                    "Images to PDF" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val outPath = File(outputDir, "converted_${System.currentTimeMillis()}.pdf")
+                                            omni.toolbox.utils.PdfUtils.imagesToPdf(context, selectedFiles, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "PDF created: ${outPath.name}", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     }
@@ -233,6 +266,18 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                                             omni.toolbox.utils.PdfUtils.repair(tempFile, outPath)
                                             withContext(Dispatchers.Main) {
                                                 Toast.makeText(context, "Repaired PDF: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                    "Extract Images PDF" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val tempFile = File(context.cacheDir, "temp_extract.pdf")
+                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                tempFile.outputStream().use { output -> input.copyTo(output) }
+                                            }
+                                            val exported = omni.toolbox.utils.PdfUtils.exportToImages(tempFile, outputDir)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "Extracted ${exported.size} images to ${outputDir.name}", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     }
@@ -369,7 +414,8 @@ fun PdfToolOptions(
     pdfTitle: String, onPdfTitleChange: (String) -> Unit,
     pdfAuthor: String, onPdfAuthorChange: (String) -> Unit,
     pdfSubject: String, onPdfSubjectChange: (String) -> Unit,
-    pdfKeywords: String, onPdfKeywordsChange: (String) -> Unit
+    pdfKeywords: String, onPdfKeywordsChange: (String) -> Unit,
+    textContent: String, onTextContentChange: (String) -> Unit
 ) {
     when (title) {
         "Split PDF" -> {
@@ -413,7 +459,7 @@ fun PdfToolOptions(
             OutlinedTextField(value = "", onValueChange = {}, label = { Text("Enter Web URL") }, modifier = Modifier.fillMaxWidth())
         }
         "Text to PDF" -> {
-            OutlinedTextField(value = "", onValueChange = {}, label = { Text("Enter or paste text content") }, modifier = Modifier.fillMaxWidth(), minLines = 5)
+            OutlinedTextField(value = textContent, onValueChange = onTextContentChange, label = { Text("Enter or paste text content") }, modifier = Modifier.fillMaxWidth(), minLines = 5)
         }
         "Invert PDF" -> {
             Text("Invert colors for night mode reading or high contrast viewing.")

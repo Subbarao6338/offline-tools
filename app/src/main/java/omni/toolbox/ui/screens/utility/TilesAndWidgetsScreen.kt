@@ -1,6 +1,8 @@
 package omni.toolbox.ui.screens.utility
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -9,6 +11,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import omni.toolbox.ui.components.ToolScreen
@@ -106,14 +109,45 @@ fun TilesAndWidgetsScreen(navController: NavHostController) {
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            var showShortcutDialog by remember { mutableStateOf(false) }
+            val context = LocalContext.current
+
             OutlinedButton(
-                onClick = { /* In a real app, we could open system shortcut pin dialog */ },
+                onClick = { showShortcutDialog = true },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = false
+                enabled = true
             ) {
                 Icon(Icons.AutoMirrored.Filled.Shortcut, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Pin Tool Shortcut (System Feature)")
+            }
+
+            if (showShortcutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showShortcutDialog = false },
+                    title = { Text("Select Tool to Pin") },
+                    text = {
+                        Box(modifier = Modifier.heightIn(max = 400.dp)) {
+                            androidx.compose.foundation.lazy.LazyColumn {
+                                items(omni.toolbox.model.ToolProvider.tools.filter { it.isVisibleOnHome }) { tool ->
+                                    ListItem(
+                                        headlineContent = { Text(tool.name) },
+                                        modifier = Modifier.clickable {
+                                            omni.toolbox.utils.ShortcutUtils.pinShortcut(context, tool)
+                                            showShortcutDialog = false
+                                        },
+                                        leadingContent = { Icon(tool.icon, contentDescription = null, tint = tool.color) }
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showShortcutDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
             }
         }
     }

@@ -11,6 +11,10 @@ import com.tom_roush.pdfbox.pdmodel.graphics.blend.BlendMode
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
+import android.content.Context
+import android.net.Uri
+import android.graphics.BitmapFactory
+import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 
 object PdfUtils {
     fun exportToImages(pdfFile: File, outputDir: File): List<File> {
@@ -128,6 +132,118 @@ object PdfUtils {
         }
         newDoc.save(outFile)
         newDoc.close()
+        document.close()
+    }
+
+    fun imagesToPdf(context: Context, images: List<Uri>, outFile: File) {
+        val document = PDDocument()
+        images.forEach { uri ->
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val bitmap = BitmapFactory.decodeStream(inputStream) ?: return@use
+                try {
+                    val page = com.tom_roush.pdfbox.pdmodel.PDPage(PDRectangle(bitmap.width.toFloat(), bitmap.height.toFloat()))
+                    document.addPage(page)
+                    val pdImage = LosslessFactory.createFromImage(document, bitmap)
+                    PDPageContentStream(document, page).use { contentStream ->
+                        contentStream.drawImage(pdImage, 0f, 0f)
+                    }
+                } finally {
+                    bitmap.recycle()
+                }
+            }
+        }
+        document.save(outFile)
+        document.close()
+    }
+
+    fun textToPdf(text: String, outFile: File) {
+        val document = PDDocument()
+        val font = PDType1Font.HELVETICA
+        val fontSize = 12f
+        val margin = 50f
+        val leading = 1.5f * fontSize
+
+        val sanitizedText = text.replace("\r", "")
+        val lines = mutableListOf<String>()
+        sanitizedText.split("\n").forEach { paragraph ->
+            var currentLine = paragraph
+            if (currentLine.isEmpty()) {
+                lines.add("")
+                return@forEach
+            }
+            while (currentLine.isNotEmpty()) {
+                var length = 0f
+                var lastSpace = -1
+                var i = 0
+                while (i < currentLine.length) {
+                    val char = currentLine[i]
+                    if (char == ' ') lastSpace = i
+
+                    val charWidth = try {
+                        font.getStringWidth(char.toString()) / 1000f * fontSize
+                    } catch (e: Exception) {
+                        font.getStringWidth("?") / 1000f * fontSize
+                    }
+
+                    val availableWidth = PDRectangle.A4.width - 2 * margin
+                    if (length + charWidth > availableWidth) break
+                    length += charWidth
+                    i++
+                }
+
+                if (i == 0 && currentLine.isNotEmpty()) {
+                    // Force at least one character to prevent infinite loop
+                    i = 1
+                }
+
+                if (i < currentLine.length && lastSpace != -1) {
+                    lines.add(currentLine.substring(0, lastSpace))
+                    currentLine = currentLine.substring(lastSpace + 1)
+                } else {
+                    lines.add(currentLine.substring(0, i))
+                    currentLine = currentLine.substring(i)
+                }
+            }
+        }
+
+        var page = com.tom_roush.pdfbox.pdmodel.PDPage(PDRectangle.A4)
+        document.addPage(page)
+        var contentStream = PDPageContentStream(document, page)
+        contentStream.beginText()
+        contentStream.setFont(font, fontSize)
+        contentStream.newLineAtOffset(margin, page.mediaBox.upperRightY - margin)
+
+        var currentY = page.mediaBox.upperRightY - margin
+
+        lines.forEach { line ->
+            if (currentY - leading < margin) {
+                contentStream.endText()
+                contentStream.close()
+                page = com.tom_roush.pdfbox.pdmodel.PDPage(PDRectangle.A4)
+                document.addPage(page)
+                contentStream = PDPageContentStream(document, page)
+                contentStream.beginText()
+                contentStream.setFont(font, fontSize)
+                contentStream.newLineAtOffset(margin, page.mediaBox.upperRightY - margin)
+                currentY = page.mediaBox.upperRightY - margin
+            }
+
+            try {
+                contentStream.showText(line)
+            } catch (e: Exception) {
+                // Fallback for non-mappable characters
+                val fallbackLine = line.map { c ->
+                    try { font.getStringWidth(c.toString()); c } catch (ex: Exception) { '?' }
+                }.joinToString("")
+                contentStream.showText(fallbackLine)
+            }
+            contentStream.newLineAtOffset(0f, -leading)
+            currentY -= leading
+        }
+
+        contentStream.endText()
+        contentStream.close()
+        document.save(outFile)
         document.close()
     }
 }
