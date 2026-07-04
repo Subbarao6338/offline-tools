@@ -524,20 +524,67 @@ fun TicTacToeBoard(isPvP: Boolean, onReset: () -> Unit) {
             if (!isPvP && !turnX) {
                 LaunchedEffect(turnX) {
                     delay(1000)
-                    val emptyIndices = board.indices.filter { board[it] == "" }
-                    if (emptyIndices.isNotEmpty()) {
-                        val move = emptyIndices.random()
+                    val move = findBestMove(board)
+                    if (move != -1) {
                         val newBoard = board.toMutableList()
                         newBoard[move] = "O"
                         board = newBoard
                         turnX = true
                         checkWinner(newBoard)?.let { winner = it }
-                    } else {
+                    } else if (board.none { it == "" }) {
                         winner = "Draw"
                     }
                 }
             }
         }
+    }
+}
+
+fun findBestMove(board: List<String>): Int {
+    var bestScore = Int.MIN_VALUE
+    var move = -1
+    for (i in board.indices) {
+        if (board[i] == "") {
+            val newBoard = board.toMutableList()
+            newBoard[i] = "O"
+            val score = minimax(newBoard, 0, false)
+            if (score > bestScore) {
+                bestScore = score
+                move = i
+            }
+        }
+    }
+    return move
+}
+
+fun minimax(board: List<String>, depth: Int, isMaximizing: Boolean): Int {
+    val result = checkWinner(board)
+    if (result == "O") return 10 - depth
+    if (result == "X") return depth - 10
+    if (result == "Draw") return 0
+
+    return if (isMaximizing) {
+        var bestScore = Int.MIN_VALUE
+        for (i in board.indices) {
+            if (board[i] == "") {
+                val newBoard = board.toMutableList()
+                newBoard[i] = "O"
+                val score = minimax(newBoard, depth + 1, false)
+                bestScore = maxOf(bestScore, score)
+            }
+        }
+        bestScore
+    } else {
+        var bestScore = Int.MAX_VALUE
+        for (i in board.indices) {
+            if (board[i] == "") {
+                val newBoard = board.toMutableList()
+                newBoard[i] = "X"
+                val score = minimax(newBoard, depth + 1, true)
+                bestScore = minOf(bestScore, score)
+            }
+        }
+        bestScore
     }
 }
 

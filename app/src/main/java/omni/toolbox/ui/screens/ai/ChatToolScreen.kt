@@ -1,6 +1,5 @@
 package omni.toolbox.ui.screens.ai
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,8 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import omni.toolbox.ui.components.ToolScreen
@@ -87,10 +84,12 @@ fun ChatToolScreen(navController: NavHostController, title: String, aiApiKey: St
                                             val lines = currentInput.lines().filter { it.isNotBlank() }
                                             if (lines.size < 2) "Offline AI: Please provide at least a header and one row of data."
                                             else {
-                                                val header = lines.first().split(",")
-                                                val rows = lines.drop(1).map { it.split(",") }
+                                                val header = parseCsvLine(lines.first())
+                                                val rows = lines.drop(1).map { parseCsvLine(it) }
                                                 val jsonResult = rows.joinToString(",\n  ", "[\n  ", "\n]") { row ->
-                                                    header.zip(row).joinToString(", ", "{ ", " }") { (k, v) -> "\"${k.trim()}\": \"${v.trim()}\"" }
+                                                    header.zip(row).joinToString(", ", "{ ", " }") { (k, v) ->
+                                                        "\"${k.replace("\"", "\\\"")}\": \"${v.replace("\"", "\\\"")}\""
+                                                    }
                                                 }
                                                 "Converted JSON:\n$jsonResult"
                                             }
@@ -207,6 +206,34 @@ fun ChatToolScreen(navController: NavHostController, title: String, aiApiKey: St
             }
         }
     }
+}
+
+fun parseCsvLine(line: String): List<String> {
+    val result = mutableListOf<String>()
+    var current = StringBuilder()
+    var inQuotes = false
+    var i = 0
+    while (i < line.length) {
+        val c = line[i]
+        when {
+            c == '\"' -> {
+                if (inQuotes && i + 1 < line.length && line[i + 1] == '\"') {
+                    current.append('\"')
+                    i++
+                } else {
+                    inQuotes = !inQuotes
+                }
+            }
+            c == ',' && !inQuotes -> {
+                result.add(current.toString().trim())
+                current = StringBuilder()
+            }
+            else -> current.append(c)
+        }
+        i++
+    }
+    result.add(current.toString().trim())
+    return result
 }
 
 @Composable

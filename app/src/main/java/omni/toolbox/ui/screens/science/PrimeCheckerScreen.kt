@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import omni.toolbox.ui.components.ToolScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -28,6 +29,29 @@ fun PrimeCheckerScreen(navController: NavHostController) {
         return@withContext true
     }
 
+    LaunchedEffect(input) {
+        if (input.isBlank()) {
+            result = null
+            isCalculating = false
+            return@LaunchedEffect
+        }
+
+        delay(500) // Debounce
+
+        val n = input.toLongOrNull()
+        if (n == null) {
+            result = "Invalid input (Too large? Max: ${Long.MAX_VALUE})"
+            isCalculating = false
+        } else {
+            isCalculating = true
+            result = "Calculating..."
+            val prime = isPrime(n)
+            result = if (prime) "$n is a prime number"
+                     else "$n is not a prime number"
+            isCalculating = false
+        }
+    }
+
     ToolScreen(title = "Prime Checker", onBack = { navController.popBackStack() }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             OutlinedTextField(
@@ -35,45 +59,17 @@ fun PrimeCheckerScreen(navController: NavHostController) {
                 onValueChange = { input = it.filter { char -> char.isDigit() } },
                 label = { Text("Enter a number") },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isCalculating
+                placeholder = { Text("e.g. 104729") }
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    val n = input.toLongOrNull()
-                    if (n == null) {
-                        result = "Invalid input"
-                    } else {
-                        isCalculating = true
-                        result = "Calculating..."
-                        // We use a launched effect triggered by a state change or just launch in scope
-                        // Since it's a simple button click, scope.launch is fine.
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isCalculating
-            ) {
-                Text("Check")
-            }
-
-            // Move the calculation to a LaunchedEffect triggered by isCalculating
-            LaunchedEffect(isCalculating) {
-                if (isCalculating) {
-                    val n = input.toLongOrNull()
-                    if (n != null) {
-                        val prime = isPrime(n)
-                        result = if (prime) "$n is a prime number"
-                                 else "$n is not a prime number"
-                    }
-                    isCalculating = false
-                }
-            }
 
             result?.let {
                 Spacer(modifier = Modifier.height(24.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isCalculating) MaterialTheme.colorScheme.surfaceVariant
+                                         else MaterialTheme.colorScheme.secondaryContainer
+                    )
                 ) {
                     Text(
                         it,
@@ -87,6 +83,13 @@ fun PrimeCheckerScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Fast prime number verification for large integers using optimized trial division.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline
+            )
         }
     }
 }
