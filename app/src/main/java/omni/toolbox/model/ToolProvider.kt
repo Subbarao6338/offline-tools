@@ -146,7 +146,8 @@ object ToolProvider {
             description = "Simple offline games.",
             subToolRoutes = listOf(
                 "coin_flip", "dice_roller", "memory_game", "number_guessing", "random", "tic_tac_toe",
-                "snake", "ludo", "carroms", "chess", "game_of_life", "clash_deck", "roulette"
+                "snake", "ludo", "carroms", "chess", "game_of_life", "clash_deck", "roulette",
+                "dino_jump", "2048", "sudoku", "minesweeper"
             )),
 
         // --- DEVICE ---
@@ -224,7 +225,8 @@ object ToolProvider {
                 "pdf_repair", "pdf_rotate", "pdf_signature", "pdf_split", "pdf_unlock",
                 "pdf_watermark", "pdf_zip", "pdf_html_to_pdf", "pdf_scan_to_pdf", "pdf_fill_forms",
                 "pdf_word_to_pdf", "pdf_excel_to_pdf", "pdf_text_to_pdf", "pdf_qr_to_pdf",
-                "pdf_barcode_to_pdf", "pdf_invert", "pdf_to_mdx", "pdf_to_mhtml"
+                "pdf_barcode_to_pdf", "pdf_invert", "pdf_to_mdx", "pdf_to_mhtml",
+                "pdf_remove_pages", "pdf_page_numbers"
             )),
         Tool("Office & Files", Icons.Default.Description, "docs_group", "Documents", Color(0xFF607D8B),
             description = "Manage documents and files.",
@@ -511,6 +513,10 @@ object ToolProvider {
         Tool("Game of Life", Icons.Default.Grid4x4, "game_of_life", "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Clash Deck", Icons.Default.Style, "clash_deck", "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Roulette", Icons.Default.Casino, "roulette", "Games", isVisibleOnHome = false, isSubTool = true),
+        Tool("Dino Jump", Icons.Default.Gamepad, "dino_jump", "Games", isVisibleOnHome = false, isSubTool = true),
+        Tool("2048", Icons.Default.Grid4x4, "2048", "Games", isVisibleOnHome = false, isSubTool = true),
+        Tool("Sudoku", Icons.Default.GridOn, "sudoku", "Games", isVisibleOnHome = false, isSubTool = true),
+        Tool("Minesweeper", Icons.Default.GridOn, "minesweeper", "Games", isVisibleOnHome = false, isSubTool = true),
 
         // --- DEVICE SUB-TOOLS ---
         Tool("Altimeter", Icons.Default.Landscape, "altimeter", "Device", isVisibleOnHome = false, isSubTool = true),

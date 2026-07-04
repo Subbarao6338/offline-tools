@@ -156,6 +156,85 @@ object PdfUtils {
         document.close()
     }
 
+    fun removePages(pdfFile: File, pageRanges: String, outFile: File) {
+        val document = PDDocument.load(pdfFile)
+        val pagesToRemove = parsePageRanges(pageRanges, document.numberOfPages)
+        val newDoc = PDDocument()
+        for (i in 0 until document.numberOfPages) {
+            if (!pagesToRemove.contains(i + 1)) {
+                newDoc.importPage(document.getPage(i))
+            }
+        }
+        newDoc.save(outFile)
+        newDoc.close()
+        document.close()
+    }
+
+    private fun parsePageRanges(ranges: String, maxPages: Int): Set<Int> {
+        val result = mutableSetOf<Int>()
+        ranges.split(",").forEach { part ->
+            val trimmed = part.trim()
+            if (trimmed.contains("-")) {
+                val bounds = trimmed.split("-")
+                if (bounds.size == 2) {
+                    val start = bounds[0].trim().toIntOrNull() ?: 1
+                    val end = bounds[1].trim().toIntOrNull() ?: maxPages
+                    for (i in start..end) result.add(i)
+                }
+            } else {
+                trimmed.toIntOrNull()?.let { result.add(it) }
+            }
+        }
+        return result
+    }
+
+    fun addPageNumbers(pdfFile: File, outFile: File) {
+        val document = PDDocument.load(pdfFile)
+        val font = PDType1Font.HELVETICA
+        val fontSize = 10f
+
+        for (i in 0 until document.numberOfPages) {
+            val page = document.getPage(i)
+            PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true).use { contentStream ->
+                contentStream.beginText()
+                contentStream.setFont(font, fontSize)
+                val text = "Page ${i + 1} of ${document.numberOfPages}"
+                val textWidth = font.getStringWidth(text) / 1000f * fontSize
+                contentStream.newLineAtOffset((page.mediaBox.width - textWidth) / 2, 20f)
+                contentStream.showText(text)
+                contentStream.endText()
+            }
+        }
+        document.save(outFile)
+        document.close()
+    }
+
+    fun addWatermark(pdfFile: File, watermarkText: String, outFile: File) {
+        val document = PDDocument.load(pdfFile)
+        val font = PDType1Font.HELVETICA_BOLD
+        val fontSize = 60f
+
+        for (page in document.pages) {
+            PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true).use { contentStream ->
+                val graphicsState = PDExtendedGraphicsState()
+                graphicsState.nonStrokingAlphaConstant = 0.3f
+                contentStream.setGraphicsStateParameters(graphicsState)
+                contentStream.setNonStrokingColor(200, 200, 200)
+                contentStream.beginText()
+                contentStream.setFont(font, fontSize)
+
+                // Position at center with rotation
+                contentStream.setTextMatrix(com.tom_roush.pdfbox.util.Matrix.getRotateInstance(Math.toRadians(45.0), page.mediaBox.width / 2, page.mediaBox.height / 2))
+                val textWidth = font.getStringWidth(watermarkText) / 1000f * fontSize
+                contentStream.newLineAtOffset(-textWidth / 2, 0f)
+                contentStream.showText(watermarkText)
+                contentStream.endText()
+            }
+        }
+        document.save(outFile)
+        document.close()
+    }
+
     fun textToPdf(text: String, outFile: File) {
         val document = PDDocument()
         val font = PDType1Font.HELVETICA

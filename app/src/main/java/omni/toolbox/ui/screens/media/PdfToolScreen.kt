@@ -318,6 +318,45 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                                             }
                                         }
                                     }
+                                    "Remove PDF pages" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val tempFile = File(context.cacheDir, "temp_remove.pdf")
+                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                tempFile.outputStream().use { output -> input.copyTo(output) }
+                                            }
+                                            val outPath = File(outputDir, "removed_${System.currentTimeMillis()}.pdf")
+                                            omni.toolbox.utils.PdfUtils.removePages(tempFile, pageRanges, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "Pages removed: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                    "Page Numbers" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val tempFile = File(context.cacheDir, "temp_numbers.pdf")
+                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                tempFile.outputStream().use { output -> input.copyTo(output) }
+                                            }
+                                            val outPath = File(outputDir, "numbered_${System.currentTimeMillis()}.pdf")
+                                            omni.toolbox.utils.PdfUtils.addPageNumbers(tempFile, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "Page numbers added: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                    "Watermarking PDF" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val tempFile = File(context.cacheDir, "temp_watermark.pdf")
+                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                tempFile.outputStream().use { output -> input.copyTo(output) }
+                                            }
+                                            val outPath = File(outputDir, "watermarked_${System.currentTimeMillis()}.pdf")
+                                            omni.toolbox.utils.PdfUtils.addWatermark(tempFile, textContent, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "Watermark added: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
                                     "PDF to MDX" -> {
                                         if (selectedFiles.isNotEmpty()) {
                                             context.contentResolver.openInputStream(selectedFiles[0])?.use { inputStream ->
@@ -418,7 +457,7 @@ fun PdfToolOptions(
     textContent: String, onTextContentChange: (String) -> Unit
 ) {
     when (title) {
-        "Split PDF" -> {
+        "Split PDF", "Remove PDF pages" -> {
             OutlinedTextField(value = pageRanges, onValueChange = onPageRangesChange, label = { Text("Page Ranges (e.g., 1-5, 8, 11-13)") }, modifier = Modifier.fillMaxWidth())
         }
         "Merge PDF" -> {
@@ -460,6 +499,9 @@ fun PdfToolOptions(
         }
         "Text to PDF" -> {
             OutlinedTextField(value = textContent, onValueChange = onTextContentChange, label = { Text("Enter or paste text content") }, modifier = Modifier.fillMaxWidth(), minLines = 5)
+        }
+        "Watermarking PDF" -> {
+            OutlinedTextField(value = textContent, onValueChange = onTextContentChange, label = { Text("Watermark Text") }, modifier = Modifier.fillMaxWidth())
         }
         "Invert PDF" -> {
             Text("Invert colors for night mode reading or high contrast viewing.")
