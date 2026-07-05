@@ -17,6 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.net.InetAddress
 
 @Composable
@@ -92,16 +94,38 @@ fun PingScreen(navController: NavHostController) {
 
 private suspend fun ping(host: String): String = withContext(Dispatchers.IO) {
     try {
-        val start = System.currentTimeMillis()
-        val address = InetAddress.getByName(host)
-        val reachable = address.isReachable(3000)
-        val end = System.currentTimeMillis()
-        if (reachable) {
-            "${address.hostAddress} - ${end - start}ms"
+        val process = Runtime.getRuntime().exec("ping -c 1 $host")
+        val reader = BufferedReader(InputStreamReader(process.inputStream))
+        var line: String?
+        val output = StringBuilder()
+        while (reader.readLine().also { line = it } != null) {
+            output.append(line).append("\n")
+        }
+        process.waitFor()
+        if (process.exitValue() == 0) {
+            val result = output.toString()
+            if (result.contains("time=")) {
+                result.substringAfter("time=").substringBefore(" ms").trim() + " ms"
+            } else {
+                "Success"
+            }
         } else {
-            "Timed out"
+            "Timed out / Error"
         }
     } catch (e: Exception) {
-        "Error: ${e.message}"
+        // Fallback to isReachable
+        try {
+            val start = System.currentTimeMillis()
+            val address = InetAddress.getByName(host)
+            val reachable = address.isReachable(3000)
+            val end = System.currentTimeMillis()
+            if (reachable) {
+                "${end - start}ms (fallback)"
+            } else {
+                "Timed out (fallback)"
+            }
+        } catch (ex: Exception) {
+            "Error: ${ex.message}"
+        }
     }
 }

@@ -12,11 +12,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import android.app.StatusBarManager
+import android.content.ComponentName
+import android.content.Context
+import android.os.Build
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import omni.toolbox.ui.components.ToolScreen
+import omni.toolbox.service.QuickTileService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickTilesCreatorScreen(navController: NavHostController) {
+    val context = LocalContext.current
     var tileName by remember { mutableStateOf("Quick Cleaner") }
 
     ToolScreen(title = "Quick Tiles Creator", onBack = { navController.popBackStack() }) { padding ->
@@ -79,7 +87,23 @@ fun QuickTilesCreatorScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(onClick = { /* Create */ }, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val statusBarManager = context.getSystemService(Context.STATUS_BAR_SERVICE) as StatusBarManager
+                        statusBarManager.requestAddTileService(
+                            ComponentName(context, QuickTileService::class.java),
+                            "Omni Dashboard",
+                            android.graphics.drawable.Icon.createWithResource(context, android.R.drawable.ic_dialog_info),
+                            { /* success */ },
+                            { /* failure */ }
+                        )
+                    } else {
+                        Toast.makeText(context, "Tile registration only supported on Android 13+", Toast.LENGTH_LONG).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Register Tile to System")
             }
         }

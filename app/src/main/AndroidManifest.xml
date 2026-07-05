@@ -276,6 +276,16 @@
         </service>
 
         <service
+            android:name="omni.toolbox.service.QuickTileService"
+            android:exported="true"
+            android:label="Omni Dashboard"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
             android:name="omni.toolbox.service.DynamicTileService1"
             android:exported="true"
             android:label="Custom Tile 1"
