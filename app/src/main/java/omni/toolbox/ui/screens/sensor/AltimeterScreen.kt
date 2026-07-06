@@ -54,14 +54,14 @@ fun AltimeterScreen(navController: NavHostController) {
             if (!isSensorAvailable) {
                 Text("Pressure sensor not available", color = MaterialTheme.colorScheme.error)
             } else {
-                Text(text = String.format("%.1f m", altitude), style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 64.sp), color = MaterialTheme.colorScheme.primary)
+                Text(text = String.format(java.util.Locale.getDefault(), "%.1f m", altitude), style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 64.sp), color = MaterialTheme.colorScheme.primary)
                 Text(text = "Estimated Altitude", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(48.dp))
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Current Pressure")
-                            Text(String.format("%.2f hPa", pressure), fontWeight = FontWeight.Bold)
+                            Text(String.format(java.util.Locale.getDefault(), "%.2f hPa", pressure), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

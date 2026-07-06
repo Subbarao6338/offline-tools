@@ -99,8 +99,8 @@ fun ResistorCalculator() {
 
 fun formatResistance(r: Double): String {
     return when {
-        r >= 1_000_000 -> String.format("%.1f M", r / 1_000_000)
-        r >= 1_000 -> String.format("%.1f k", r / 1_000)
+        r >= 1_000_000 -> String.format(java.util.Locale.getDefault(), "%.1f M", r / 1_000_000)
+        r >= 1_000 -> String.format(java.util.Locale.getDefault(), "%.1f k", r / 1_000)
         else -> r.toInt().toString()
     }
 }
@@ -167,9 +167,9 @@ fun AntennaCalculator() {
         Spacer(Modifier.height(16.dp))
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Wavelength (λ): ${String.format("%.4f", waveLength)} m")
-                Text("Half-wave Dipole: ${String.format("%.2f", halfWave)} mm")
-                Text("Quarter-wave Monopole: ${String.format("%.2f", quarterWave)} mm")
+                Text("Wavelength (λ): ${String.format(java.util.Locale.getDefault(), "%.4f", waveLength)} m")
+                Text("Half-wave Dipole: ${String.format(java.util.Locale.getDefault(), "%.2f", halfWave)} mm")
+                Text("Quarter-wave Monopole: ${String.format(java.util.Locale.getDefault(), "%.2f", quarterWave)} mm")
                 Text("Velocity Factor: 0.95", style = MaterialTheme.typography.labelSmall)
             }
         }
@@ -190,8 +190,8 @@ fun PcbTraceCalculator() {
         OutlinedTextField(value = current, onValueChange = { current = it }, label = { Text("Current (Amps)") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = tempRise, onValueChange = { tempRise = it }, label = { Text("Temp Rise (°C)") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(16.dp))
-        Text("Required Trace Area: ${String.format("%.4f", area)} mil²")
-        Text("Trace Width (1oz Cu): ${String.format("%.2f", width)} mils")
+        Text("Required Trace Area: ${String.format(java.util.Locale.getDefault(), "%.4f", area)} mil²")
+        Text("Trace Width (1oz Cu): ${String.format(java.util.Locale.getDefault(), "%.2f", width)} mils")
     }
 }
 
@@ -206,7 +206,7 @@ fun ForceCalculator() {
         OutlinedTextField(value = mass, onValueChange = { mass = it }, label = { Text("Mass (kg)") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = accel, onValueChange = { accel = it }, label = { Text("Acceleration (m/s²)") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(16.dp))
-        Text("Force (F = ma): ${String.format("%.2f", m * a)} Newtons", style = MaterialTheme.typography.headlineSmall)
+        Text("Force (F = ma): ${String.format(java.util.Locale.getDefault(), "%.2f", m * a)} Newtons", style = MaterialTheme.typography.headlineSmall)
     }
 }
 
@@ -298,7 +298,7 @@ fun FilterDesigner() {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Required Resistance (R):", style = MaterialTheme.typography.labelLarge)
-                Text("${String.format("%.2f", r)} Ω", style = MaterialTheme.typography.headlineMedium)
+                Text("${String.format(java.util.Locale.getDefault(), "%.2f", r)} Ω", style = MaterialTheme.typography.headlineMedium)
             }
         }
     }

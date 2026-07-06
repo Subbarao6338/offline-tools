@@ -56,11 +56,11 @@ fun TravelBudgetScreen(navController: NavHostController) {
                 ) {
                     Column {
                         Text("Spent", style = MaterialTheme.typography.labelMedium)
-                        Text("$${java.lang.String.format("%.2f", totalExpenses)}", style = MaterialTheme.typography.titleLarge)
+                        Text("$${java.lang.String.format(java.util.Locale.getDefault(), "%.2f", totalExpenses)}", style = MaterialTheme.typography.titleLarge)
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text("Remaining", style = MaterialTheme.typography.labelMedium)
-                        Text("$${java.lang.String.format("%.2f", remaining)}", style = MaterialTheme.typography.titleLarge, color = if (remaining < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+                        Text("$${java.lang.String.format(java.util.Locale.getDefault(), "%.2f", remaining)}", style = MaterialTheme.typography.titleLarge, color = if (remaining < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -101,7 +101,7 @@ fun TravelBudgetScreen(navController: NavHostController) {
                 items(expenses) { expense ->
                     ListItem(
                         headlineContent = { Text(expense.description) },
-                        trailingContent = { Text("$${java.lang.String.format("%.2f", expense.amount)}") },
+                        trailingContent = { Text("$${java.lang.String.format(java.util.Locale.getDefault(), "%.2f", expense.amount)}") },
                         leadingContent = { Icon(Icons.AutoMirrored.Filled.ReceiptLong, contentDescription = null) }
                     )
                     HorizontalDivider()

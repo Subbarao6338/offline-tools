@@ -237,7 +237,7 @@ fun BulkDownloaderTab(viewModel: OmniViewModel) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
                     Text("Profile Target: ${result.handle}", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     Text("Images: ${result.imagesDownloaded} | Videos: ${result.videosDownloaded}", fontSize = 12.sp)
-                    Text("Total size: ${String.format("%.2f", result.totalDataSizeMb)} MB", fontSize = 12.sp, color = Color(0xFF00C853))
+                    Text("Total size: ${String.format(java.util.Locale.getDefault(), "%.2f", result.totalDataSizeMb)} MB", fontSize = 12.sp, color = Color(0xFF00C853))
                 }
             }
         }

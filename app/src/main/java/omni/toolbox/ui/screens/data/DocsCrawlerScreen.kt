@@ -71,7 +71,7 @@ fun DocsCrawlerScreen(navController: NavHostController, viewModel: OmniViewModel
 fun DocViewerTab(viewModel: OmniViewModel) {
     val docs = viewModel.documents.value
     var searchQuery by remember { mutableStateOf("") }
-    var folderPath by remember { mutableStateOf("/sdcard/Documents") }
+    var folderPath by remember { mutableStateOf(android.os.Environment.getExternalStorageDirectory().getPath() + "/Documents") }
     var isIngesting by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 

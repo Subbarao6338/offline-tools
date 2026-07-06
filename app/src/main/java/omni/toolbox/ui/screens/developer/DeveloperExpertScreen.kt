@@ -216,7 +216,7 @@ fun HexViewer() {
         Spacer(modifier = Modifier.height(16.dp))
 
         val hexString = textInput.toByteArray().joinToString(" ") {
-            String.format("%02X", it)
+            String.format(java.util.Locale.getDefault(), "%02X", it)
         }
 
         Card(
@@ -250,7 +250,7 @@ fun AsciiTable() {
                 (32..126).forEach { i ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(i.toString(), modifier = Modifier.weight(1f))
-                        Text(String.format("%02X", i), modifier = Modifier.weight(1f))
+                        Text(String.format(java.util.Locale.getDefault(), "%02X", i), modifier = Modifier.weight(1f))
                         Text(i.toChar().toString(), modifier = Modifier.weight(1f))
                     }
                 }

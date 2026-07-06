@@ -92,7 +92,7 @@ fun UnitPriceCalculatorScreen(navController: NavHostController) {
                         Icon(Icons.Default.Savings, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "${bestValue.name} is ${java.lang.String.format("%.1f", savings)}% cheaper per unit!",
+                            text = "${bestValue.name} is ${java.lang.String.format(java.util.Locale.getDefault(), "%.1f", savings)}% cheaper per unit!",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -155,7 +155,7 @@ fun ProductInputCard(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Unit Price: $${java.lang.String.format("%.4f", unitPrice)}",
+                "Unit Price: $${java.lang.String.format(java.util.Locale.getDefault(), "%.4f", unitPrice)}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )

@@ -184,7 +184,7 @@ fun BackupItem(label: String, stats: String, icon: ImageVector) {
 
 @Composable
 fun NotionArchiverTab(viewModel: OmniViewModel) {
-    var folderPath by remember { mutableStateOf("/sdcard/Documents") }
+    var folderPath by remember { mutableStateOf(android.os.Environment.getExternalStorageDirectory().getPath() + "/Documents") }
     var smartChunking by remember { mutableStateOf(true) }
     var autoTranslate by remember { mutableStateOf(false) }
 

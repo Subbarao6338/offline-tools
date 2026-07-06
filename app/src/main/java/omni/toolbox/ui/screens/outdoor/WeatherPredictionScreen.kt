@@ -89,7 +89,7 @@ fun WeatherPredictionScreen(navController: NavHostController) {
             Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Current Barometric Pressure", style = MaterialTheme.typography.labelLarge)
-                    Text("${String.format("%.2f", currentPressure)} hPa", style = MaterialTheme.typography.headlineMedium)
+                    Text("${String.format(java.util.Locale.getDefault(), "%.2f", currentPressure)} hPa", style = MaterialTheme.typography.headlineMedium)
                 }
             }
 
@@ -108,7 +108,7 @@ fun WeatherPredictionScreen(navController: NavHostController) {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "ΔP (3h): ${String.format("%.2f", pressureChange)} hPa",
+                        "ΔP (3h): ${String.format(java.util.Locale.getDefault(), "%.2f", pressureChange)} hPa",
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (abs(pressureChange) > 1.5) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )

@@ -88,7 +88,7 @@ fun BeaconNavigationScreen(navController: NavHostController) {
                         ListItem(
                             headlineContent = { Text(beacon.name, fontWeight = FontWeight.Bold) },
                             supportingContent = {
-                                Text("${String.format("%.2f", distance)}m • ${bearing.toInt()}°")
+                                Text("${String.format(java.util.Locale.getDefault(), "%.2f", distance)}m • ${bearing.toInt()}°")
                             },
                             leadingContent = { Icon(Icons.Default.Place, null, tint = MaterialTheme.colorScheme.primary) },
                             trailingContent = {

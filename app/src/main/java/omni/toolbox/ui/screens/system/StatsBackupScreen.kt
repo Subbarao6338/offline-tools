@@ -122,9 +122,9 @@ fun SystemDataTab(viewModel: OmniViewModel) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("SYSTEM DYNAMIC LOAD", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00FF88))
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("CPU: ${String.format("%.1f", systemHealth.cpuLoad)}%", fontSize = 14.sp, color = Color.White)
+                    Text("CPU: ${String.format(java.util.Locale.getDefault(), "%.1f", systemHealth.cpuLoad)}%", fontSize = 14.sp, color = Color.White)
                     Text("RAM: ${systemHealth.memoryUsedMb}MB / ${systemHealth.memoryMaxMb}MB", fontSize = 14.sp, color = Color.White)
-                    Text("TEMP: ${String.format("%.1f", systemHealth.temperatureC)}°C", fontSize = 14.sp, color = Color.White)
+                    Text("TEMP: ${String.format(java.util.Locale.getDefault(), "%.1f", systemHealth.temperatureC)}°C", fontSize = 14.sp, color = Color.White)
                 }
             }
         }

@@ -88,7 +88,7 @@ fun BillingScreen(navController: NavHostController) {
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
                 Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Total Amount", fontWeight = FontWeight.Bold)
-                    Text("$${java.lang.String.format("%.2f", total)}", fontWeight = FontWeight.Bold)
+                    Text("$${java.lang.String.format(java.util.Locale.getDefault(), "%.2f", total)}", fontWeight = FontWeight.Bold)
                 }
             }
 

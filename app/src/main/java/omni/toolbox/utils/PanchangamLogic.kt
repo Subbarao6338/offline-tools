@@ -243,7 +243,7 @@ object PanchangamLogic {
         val m = ((decimalHour - h) * 60).toInt()
         val ampm = if (h >= 12) "PM" else "AM"
         val h12 = if (h % 12 == 0) 12 else h % 12
-        return String.format("%02d:%02d %s", h12, m, ampm)
+        return String.format(java.util.Locale.getDefault(), "%02d:%02d %s", h12, m, ampm)
     }
 
     private fun calculateRahuKalam(dayOfWeek: Int, sunrise: Double, duration: Double): String {

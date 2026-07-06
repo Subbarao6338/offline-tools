@@ -466,7 +466,7 @@ fun AutomationConverterTab() {
         else -> number * 1024 // gb to mb
     }
 
-    val resultString = String.format("%.2f", result)
+    val resultString = String.format(java.util.Locale.getDefault(), "%.2f", result)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
