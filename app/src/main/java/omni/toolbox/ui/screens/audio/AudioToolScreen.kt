@@ -35,6 +35,10 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMuxer
+import java.nio.ByteBuffer
 
 @Composable
 fun AudioToolScreen(navController: NavHostController, title: String, mimeType: String = "audio/*") {
@@ -288,34 +292,18 @@ fun AudioToolScreenSingle(navController: NavHostController, title: String, mimeT
                             if (selectedFileUri != null) {
                                 val outputDir = File(context.cacheDir, "audio_output")
                                 if (!outputDir.exists()) outputDir.mkdirs()
-                                val extension = if (mimeType.startsWith("video")) "mp4" else "mp3"
+                                val isVideo = mimeType.startsWith("video")
+                                val extension = if (isVideo) "mp4" else "m4a"
                                 val outPath = File(outputDir, "processed_${System.currentTimeMillis()}.$extension")
 
-                                context.contentResolver.openInputStream(selectedFileUri)?.use { input ->
-                                    if (title == "Audio Cutter" || title == "m_audio_cutter" || title == "Video Trim" || title == "video_trim") {
-                                        // Simulate trimming by skipping a portion of the stream
-                                        // A real implementation would need to parse the container format
-                                        val totalAvailable = input.available()
-                                        if (totalAvailable > 0) {
-                                            val skipBytes = ((startTime / 300f) * totalAvailable).toLong()
-                                            val takeBytes = (((endTime - startTime) / 300f) * totalAvailable).toLong()
-                                            input.skip(skipBytes)
-                                            FileOutputStream(outPath).use { output ->
-                                                val buffer = ByteArray(8192)
-                                                var bytesRead: Int
-                                                var totalRead = 0L
-                                                while (input.read(buffer).also { bytesRead = it } != -1 && totalRead < takeBytes) {
-                                                    output.write(buffer, 0, bytesRead)
-                                                    totalRead += bytesRead
-                                                }
-                                            }
-                                        } else {
-                                            FileOutputStream(outPath).use { output -> input.copyTo(output) }
-                                        }
-                                    } else {
+                                if (title == "Audio Cutter" || title == "m_audio_cutter" || title == "Video Trim" || title == "video_trim") {
+                                    trimMedia(context, selectedFileUri, outPath, startTime.toLong() * 1000000L, endTime.toLong() * 1000000L)
+                                } else {
+                                    context.contentResolver.openInputStream(selectedFileUri)?.use { input ->
                                         FileOutputStream(outPath).use { output -> input.copyTo(output) }
                                     }
                                 }
+
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(context, "Processed file saved: ${outPath.name}", Toast.LENGTH_LONG).show()
                                 }
@@ -337,6 +325,52 @@ fun AudioToolScreenSingle(navController: NavHostController, title: String, mimeT
             }
         }
     }
+}
+
+private fun trimMedia(context: android.content.Context, uri: Uri, outputFile: File, startUs: Long, endUs: Long) {
+    val extractor = MediaExtractor()
+    extractor.setDataSource(context, uri, null)
+
+    val trackCount = extractor.trackCount
+    val muxer = MediaMuxer(outputFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+    val indexMap = mutableMapOf<Int, Int>()
+
+    for (i in 0 until trackCount) {
+        val format = extractor.getTrackFormat(i)
+        extractor.selectTrack(i)
+        val newIndex = muxer.addTrack(format)
+        indexMap[i] = newIndex
+    }
+
+    muxer.start()
+
+    val buffer = ByteBuffer.allocate(1024 * 1024)
+    val bufferInfo = android.media.MediaCodec.BufferInfo()
+
+    extractor.seekTo(startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+
+    while (true) {
+        val trackIndex = extractor.sampleTrackIndex
+        if (trackIndex < 0) break
+
+        bufferInfo.offset = 0
+        bufferInfo.size = extractor.readSampleData(buffer, 0)
+        bufferInfo.presentationTimeUs = extractor.sampleTime
+        @Suppress("WrongConstant")
+        bufferInfo.flags = extractor.sampleFlags
+
+        if (bufferInfo.presentationTimeUs > endUs) break
+
+        val newIndex = indexMap[trackIndex]
+        if (newIndex != null) {
+            muxer.writeSampleData(newIndex, buffer, bufferInfo)
+        }
+        extractor.advance()
+    }
+
+    muxer.stop()
+    muxer.release()
+    extractor.release()
 }
 
 @Composable

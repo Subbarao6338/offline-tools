@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.content.Context
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,8 +57,7 @@ fun ImageAIScreen(navController: NavHostController, title: String) {
                         val uri = selectedImageUri ?: return@LaunchedEffect
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                             try {
-                                val inputStream = context.contentResolver.openInputStream(uri)
-                                val bitmap = BitmapFactory.decodeStream(inputStream)
+                                val bitmap = loadScaledBitmap(context, uri)
                                 if (bitmap != null) {
                                     val transformed = FilterEngine.applyTransformations(
                                         bitmap,
@@ -88,5 +88,36 @@ fun ImageAIScreen(navController: NavHostController, title: String) {
                 }
             }
         }
+    }
+}
+
+private fun loadScaledBitmap(context: Context, uri: Uri): Bitmap? {
+    return try {
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
+        context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
+        }
+
+        var inSampleSize = 1
+        val reqWidth = 1024
+        val reqHeight = 1024
+        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+            val halfHeight: Int = options.outHeight / 2
+            val halfWidth: Int = options.outWidth / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        val finalOptions = BitmapFactory.Options().apply {
+            this.inSampleSize = inSampleSize
+        }
+        context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, finalOptions)
+        }
+    } catch (e: Exception) {
+        null
     }
 }
