@@ -16,8 +16,12 @@ import java.util.regex.Pattern
 
 @Composable
 fun CpuInfoScreen(navController: NavHostController) {
+    val procCpuInfo = getProcCpuInfo()
     val cpuInfo = listOf(
-        "Processor" to Build.HARDWARE,
+        "Processor" to (procCpuInfo["model name"] ?: Build.HARDWARE),
+        "BogoMIPS" to (procCpuInfo["bogomips"] ?: "N/A"),
+        "Features" to (procCpuInfo["flags"] ?: "N/A"),
+        "CPU MHz" to (procCpuInfo["cpu MHz"] ?: "N/A"),
         "Supported ABIs" to Build.SUPPORTED_ABIS.joinToString(", "),
         "Cores" to getNumberOfCores().toString(),
         "Model" to Build.MODEL,
@@ -37,6 +41,21 @@ fun CpuInfoScreen(navController: NavHostController) {
             }
         }
     }
+}
+
+private fun getProcCpuInfo(): Map<String, String> {
+    val info = mutableMapOf<String, String>()
+    try {
+        File("/proc/cpuinfo").forEachLine { line ->
+            val parts = line.split(":")
+            if (parts.size == 2) {
+                info[parts[0].trim()] = parts[1].trim()
+            }
+        }
+    } catch (e: Exception) {
+        // Handle exception
+    }
+    return info
 }
 
 private fun getNumberOfCores(): Int {

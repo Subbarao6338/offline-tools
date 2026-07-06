@@ -21,6 +21,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Debug
+import java.io.RandomAccessFile
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -72,10 +73,30 @@ fun DashboardScreen(navController: NavHostController) {
             ramUsage = (usedMem / totalMem).toFloat()
             ramText = "${(usedMem / (1024 * 1024 * 1024)).toInt()} GB / ${(totalMem / (1024 * 1024 * 1024)).toInt()} GB"
 
-            // Heuristic CPU Load based on native heap allocation
-            val nativeHeap = Debug.getNativeHeapAllocatedSize()
-            val nativeHeapMax = Debug.getNativeHeapSize()
-            cpuLoad = (nativeHeap.toFloat() / nativeHeapMax.toFloat()).coerceIn(0.05f, 0.95f)
+            // Accurate CPU Load based on /proc/stat
+            cpuLoad = try {
+                val reader = RandomAccessFile("/proc/stat", "r")
+                var load = reader.readLine()
+                var toks = load.split(" +".toRegex())
+                val idle1 = toks[4].toLong()
+                val cpu1 = toks[1].toLong() + toks[2].toLong() + toks[3].toLong() + toks[4].toLong() + toks[5].toLong() + toks[6].toLong() + toks[7].toLong()
+
+                delay(360)
+
+                reader.seek(0)
+                load = reader.readLine()
+                reader.close()
+                toks = load.split(" +".toRegex())
+                val idle2 = toks[4].toLong()
+                val cpu2 = toks[1].toLong() + toks[2].toLong() + toks[3].toLong() + toks[4].toLong() + toks[5].toLong() + toks[6].toLong() + toks[7].toLong()
+
+                (1f - (idle2 - idle1).toFloat() / (cpu2 - cpu1).toFloat()).coerceIn(0f, 1f)
+            } catch (e: Exception) {
+                // Fallback to heuristic if /proc/stat is inaccessible
+                val nativeHeap = Debug.getNativeHeapAllocatedSize()
+                val nativeHeapMax = Debug.getNativeHeapSize()
+                (nativeHeap.toFloat() / nativeHeapMax.toFloat()).coerceIn(0.05f, 0.95f)
+            }
 
             if (logs.size > 15) logs.removeAt(0)
             logs.add("> [SYS] Thread ${ (1000..9999).random() } status: OK | LOAD: ${(cpuLoad * 100).toInt()}% | TEMP: ${temp/10f}°C")

@@ -499,43 +499,64 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
             benchmarkProgress.value = 0.35f
             addLog("CPU Test completed. Score: $cpuScore")
 
-            // GPU Benchmark (Simplified for non-GL context)
-            benchmarkStatus.value = "Stressing Rendering logic..."
+            // GPU Benchmark (CPU-based Rendering Simulation)
+            benchmarkStatus.value = "Stressing Software Rendering logic (Fractal Compute)..."
             benchmarkProgress.value = 0.5f
-            delay(1000)
-            val gpuScore = (4000..11000).random()
-            benchmarkProgress.value = 0.7f
-            addLog("GPU Test completed. Score: $gpuScore")
-
-            // Memory
-            benchmarkStatus.value = "Profiling RAM bus allocations..."
-            benchmarkProgress.value = 0.82f
-            val memList = mutableListOf<ByteArray>()
-            try {
-                repeat(50) {
-                    memList.add(ByteArray(1024 * 1024)) // Allocate 1MB
-                    delay(10)
+            val gpuStartTime = System.currentTimeMillis()
+            var gpuIterations = 0
+            while (System.currentTimeMillis() - gpuStartTime < 3000) {
+                // Simulate fractal computation
+                for (y in 0 until 100) {
+                    for (x in 0 until 100) {
+                        var zr = 0.0
+                        var zi = 0.0
+                        val cr = (x - 50) / 25.0
+                        val ci = (y - 50) / 25.0
+                        repeat(50) {
+                            val nextZr = zr * zr - zi * zi + cr
+                            zi = 2.0 * zr * zi + ci
+                            zr = nextZr
+                        }
+                    }
                 }
-            } finally {
-                memList.clear()
+                gpuIterations++
             }
-            val memScore = (3000..10000).random()
+            val gpuScore = gpuIterations * 10
+            benchmarkProgress.value = 0.7f
+            addLog("Software GPU Test completed. Score: $gpuScore")
+
+            // Memory Benchmark
+            benchmarkStatus.value = "Profiling RAM throughput (R/W loops)..."
+            benchmarkProgress.value = 0.82f
+            val memSize = 10 * 1024 * 1024 // 10MB
+            val source = ByteArray(memSize) { it.toByte() }
+            val dest = ByteArray(memSize)
+            val memStartTime = System.currentTimeMillis()
+            var memIterations = 0
+            while (System.currentTimeMillis() - memStartTime < 2000) {
+                System.arraycopy(source, 0, dest, 0, memSize)
+                memIterations++
+            }
+            val memDuration = System.currentTimeMillis() - memStartTime
+            val memScore = (memIterations * memSize.toLong() / (memDuration.coerceAtLeast(1) * 1024)).toInt() // KB/ms approx
             benchmarkProgress.value = 0.92f
             addLog("RAM Test completed. Score: $memScore")
 
-            // Storage
-            benchmarkStatus.value = "Stressing sandbox flash storage sector..."
+            // Storage Benchmark
+            benchmarkStatus.value = "Stressing sandbox flash storage sector (I/O throughput)..."
             benchmarkProgress.value = 0.96f
-            val testFile = java.io.File(context.cacheDir, "bench.tmp")
+            val testFile = java.io.File(context.cacheDir, "bench_large.tmp")
+            val storageSize = 25 * 1024 * 1024 // 25MB
+            val data = ByteArray(storageSize) { it.toByte() }
             val ioStartTime = System.currentTimeMillis()
             try {
-                testFile.writeBytes(ByteArray(10 * 1024 * 1024)) // Write 10MB
-                testFile.readBytes()
+                testFile.writeBytes(data) // Write
+                testFile.readBytes() // Read
             } finally {
                 testFile.delete()
             }
             val ioDuration = System.currentTimeMillis() - ioStartTime
-            val ioScore = (100000 / ioDuration.coerceAtLeast(1)).toInt().coerceIn(1000, 10000)
+            val ioScore = (storageSize * 2 / (ioDuration.coerceAtLeast(1) * 1024)).toInt() // total bytes (W+R) per ms
             addLog("IO Test completed. Score: $ioScore")
 
             val rating = when {
