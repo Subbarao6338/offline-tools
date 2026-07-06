@@ -4,6 +4,7 @@ import android.content.Intent
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import omni.toolbox.MainActivity
+import omni.toolbox.utils.startActivityAndCollapseCompat
 
 class QuickTileService : TileService() {
     override fun onClick() {
@@ -14,7 +15,7 @@ class QuickTileService : TileService() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 putExtra("route", "dashboard")
             }
-            startActivityAndCollapse(intent)
+            startActivityAndCollapseCompat(intent)
         }
     }
 

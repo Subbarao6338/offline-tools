@@ -38,6 +38,7 @@ android {
             useSupportLibrary = true
         }
         ndk {
+            abiFilters.clear()
             abiFilters.add("arm64-v8a")
         }
         resourceConfigurations += "en"
@@ -56,6 +57,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
