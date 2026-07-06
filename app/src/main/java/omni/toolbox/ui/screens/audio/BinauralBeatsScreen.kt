@@ -67,7 +67,7 @@ fun BinauralBeatsScreen(navController: NavHostController) {
             Text("Base: ${baseFreq.toInt()} Hz", fontWeight = FontWeight.Bold)
             Slider(value = baseFreq, onValueChange = { baseFreq = it }, valueRange = 100f..500f)
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Beat: ${String.format("%.1f", beatFreq)} Hz", fontWeight = FontWeight.Bold)
+            Text("Beat: ${String.format(java.util.Locale.getDefault(), "%.1f", beatFreq)} Hz", fontWeight = FontWeight.Bold)
             Slider(value = beatFreq, onValueChange = { beatFreq = it }, valueRange = 0.5f..40f)
             Spacer(modifier = Modifier.height(48.dp))
             Button(onClick = { isPlaying = !isPlaying }, modifier = Modifier.fillMaxWidth().height(64.dp)) {

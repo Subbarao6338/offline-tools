@@ -30,7 +30,7 @@ fun AreaCalcScreen(navController: NavHostController) {
             OutlinedTextField(value = val1, onValueChange = { val1 = it }, label = { Text("Value 1") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = val2, onValueChange = { val2 = it }, label = { Text("Value 2") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
             Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) { Text("Result: ${String.format("%.4f", result)}", style = MaterialTheme.typography.headlineMedium) }
+                Column(modifier = Modifier.padding(16.dp)) { Text("Result: ${String.format(java.util.Locale.getDefault(), "%.4f", result)}", style = MaterialTheme.typography.headlineMedium) }
             }
         }
     }

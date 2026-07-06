@@ -1,5 +1,9 @@
 import java.util.Properties
 import java.io.FileInputStream
+import java.security.Security
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+
+Security.addProvider(BouncyCastleProvider())
 
 plugins {
     id("com.android.application")
@@ -51,21 +55,26 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        create("release") {
+            storeFile = file("../am_keystore.bks")
+            storePassword = "android"
+            keyAlias = "signing_key"
+            keyPassword = "android"
+            storeType = "BKS"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
         debug {
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
         }
     }
     compileOptions {

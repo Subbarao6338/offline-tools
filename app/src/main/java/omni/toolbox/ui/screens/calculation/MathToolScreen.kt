@@ -146,7 +146,7 @@ fun solveStats(input: String): String {
         val variance = nums.map { (it - mean) * (it - mean) }.sum() / nums.size
         val stdDev = sqrt(variance)
 
-        "Count: ${nums.size}\nSum: $sum\nMean: $mean\nMedian: $median\nStdDev: ${String.format("%.4f", stdDev)}\nMin: ${sorted.first()}\nMax: ${sorted.last()}"
+        "Count: ${nums.size}\nSum: $sum\nMean: $mean\nMedian: $median\nStdDev: ${String.format(java.util.Locale.getDefault(), "%.4f", stdDev)}\nMin: ${sorted.first()}\nMax: ${sorted.last()}"
     } catch (e: Exception) {
         "Invalid Input. Format: 1, 2, 3, 4.5"
     }

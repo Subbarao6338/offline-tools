@@ -173,7 +173,7 @@ data class ScrapingRule(
 )
 
 class OmniViewModel(application: Application) : AndroidViewModel(application) {
-    private val context = application.applicationContext
+    private val context = application
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
     private var lastShakeTime: Long = 0
@@ -245,6 +245,8 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     var batteryStatus by mutableStateOf("Unknown")
     var storageUsage by mutableStateOf("0 GB / 0 GB")
     var cpuCores by mutableIntStateOf(Runtime.getRuntime().availableProcessors())
+    var kernelVersion by mutableStateOf(System.getProperty("os.version") ?: "Unknown")
+    var supportedAbis by mutableStateOf(android.os.Build.SUPPORTED_ABIS.joinToString(", "))
 
     // --- Benchmarking State ---
     val isBenchmarking = mutableStateOf(false)
@@ -407,6 +409,29 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private var lastCpuStats: Pair<Long, Long>? = null
+
+    private fun readCpuStats(): Pair<Long, Long>? {
+        return try {
+            val statLine = java.io.File("/proc/stat").bufferedReader().use { it.readLine() }
+            val parts = statLine.split(Regex("\\s+"))
+            val user = parts[1].toLong()
+            val nice = parts[2].toLong()
+            val system = parts[3].toLong()
+            val idle = parts[4].toLong()
+            val iowait = parts[5].toLong()
+            val irq = parts[6].toLong()
+            val softirq = parts[7].toLong()
+            val steal = parts[8].toLong()
+
+            val total = user + nice + system + idle + iowait + irq + softirq + steal
+            val idleTotal = idle + iowait
+            Pair(idleTotal, total)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun updateSystemInfo() {
         // RAM Info
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
@@ -416,15 +441,26 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
         val availableRam = memoryInfo.availMem / (1024 * 1024)
         ramUsage = "${totalRam - availableRam} MB / $totalRam MB"
 
-        // Heuristic CPU Load based on native heap allocation
-        val nativeHeap = android.os.Debug.getNativeHeapAllocatedSize()
-        val nativeHeapMax = android.os.Debug.getNativeHeapSize()
-        val heuristicCpuLoad = if (nativeHeapMax > 0) (nativeHeap.toFloat() / nativeHeapMax.toFloat()) else 0.15f
+        // CPU Load from /proc/stat
+        val currentStats = readCpuStats()
+        var actualCpuLoad = 0.15f // fallback
+        if (currentStats != null && lastCpuStats != null) {
+            val idleDiff = currentStats.first - lastCpuStats!!.first
+            val totalDiff = currentStats.second - lastCpuStats!!.second
+            if (totalDiff > 0) {
+                actualCpuLoad = 1.0f - (idleDiff.toFloat() / totalDiff.toFloat())
+            }
+        }
+        lastCpuStats = currentStats
+
         _systemHealth.value = _systemHealth.value.copy(
-            cpuLoad = heuristicCpuLoad * 100f,
+            cpuLoad = actualCpuLoad * 100f,
             memoryUsedMb = totalRam - availableRam,
             memoryMaxMb = totalRam
         )
+
+        kernelVersion = System.getProperty("os.version") ?: "Unknown"
+        supportedAbis = android.os.Build.SUPPORTED_ABIS.joinToString(", ")
 
         // Battery Info
         val batteryStatusIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -477,31 +513,32 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     fun runAllBenchmarks() {
         if (isBenchmarking.value) return
         isBenchmarking.value = true
-        benchmarkProgress.value = 0f
+        benchmarkProgress.floatValue = 0f
         addLog("PowerBench Daemon: Running real-time physics and computing operations to stress the hardware...")
 
         viewModelScope.launch(Dispatchers.Default) {
             // CPU Benchmark
             benchmarkStatus.value = "Stressing CPU Multi-Core Math engines..."
-            benchmarkProgress.value = 0.15f
+            benchmarkProgress.floatValue = 0.15f
             val startTime = System.currentTimeMillis()
             var iterations = 0
             while (System.currentTimeMillis() - startTime < 3000) {
                 // Intensive task: check for primes in a loop
                 var num = (10000..50000).random()
-                var isPrime = true
+                var isPrimeFound = true
                 for (i in 2..Math.sqrt(num.toDouble()).toInt()) {
-                    if (num % i == 0) { isPrime = false; break }
+                    if (num % i == 0) { isPrimeFound = false; break }
                 }
+                if (isPrimeFound) { }
                 iterations++
             }
             val cpuScore = iterations / 10
-            benchmarkProgress.value = 0.35f
+            benchmarkProgress.floatValue = 0.35f
             addLog("CPU Test completed. Score: $cpuScore")
 
             // GPU Benchmark (CPU-based Rendering Simulation)
             benchmarkStatus.value = "Stressing Software Rendering logic (Fractal Compute)..."
-            benchmarkProgress.value = 0.5f
+            benchmarkProgress.floatValue = 0.5f
             val gpuStartTime = System.currentTimeMillis()
             var gpuIterations = 0
             while (System.currentTimeMillis() - gpuStartTime < 3000) {
@@ -522,12 +559,12 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
                 gpuIterations++
             }
             val gpuScore = gpuIterations * 10
-            benchmarkProgress.value = 0.7f
+            benchmarkProgress.floatValue = 0.7f
             addLog("Software GPU Test completed. Score: $gpuScore")
 
             // Memory Benchmark
             benchmarkStatus.value = "Profiling RAM throughput (R/W loops)..."
-            benchmarkProgress.value = 0.82f
+            benchmarkProgress.floatValue = 0.82f
             val memSize = 10 * 1024 * 1024 // 10MB
             val source = ByteArray(memSize) { it.toByte() }
             val dest = ByteArray(memSize)
@@ -539,12 +576,12 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
             }
             val memDuration = System.currentTimeMillis() - memStartTime
             val memScore = (memIterations * memSize.toLong() / (memDuration.coerceAtLeast(1) * 1024)).toInt() // KB/ms approx
-            benchmarkProgress.value = 0.92f
+            benchmarkProgress.floatValue = 0.92f
             addLog("RAM Test completed. Score: $memScore")
 
             // Storage Benchmark
             benchmarkStatus.value = "Stressing sandbox flash storage sector (I/O throughput)..."
-            benchmarkProgress.value = 0.96f
+            benchmarkProgress.floatValue = 0.96f
             val testFile = java.io.File(context.cacheDir, "bench_large.tmp")
             val storageSize = 25 * 1024 * 1024 // 25MB
             val data = ByteArray(storageSize) { it.toByte() }
@@ -579,14 +616,14 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
 
             lastBenchmarkResult.value = finalResult
             benchmarkHistory.value = listOf(finalResult) + benchmarkHistory.value.filter { it.name != finalResult.name }
-            benchmarkProgress.value = 1.0f
+            benchmarkProgress.floatValue = 1.0f
             benchmarkStatus.value = "Benchmarks completed!"
             isBenchmarking.value = false
         }
     }
 
     fun updateAnimationScale(scale: Float) {
-        animationScale.value = scale
+        animationScale.floatValue = scale
         addLog("Hidden Settings: Modified Animator Scale to: ${scale}x")
     }
 
@@ -622,7 +659,7 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateScreenRefreshRate(hz: Int) {
-        screenRefreshRate.value = hz
+        screenRefreshRate.intValue = hz
         addLog("Hidden Settings: Locked Display Refresh Rate: ${hz}Hz")
     }
 

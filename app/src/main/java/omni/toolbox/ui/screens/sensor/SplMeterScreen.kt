@@ -75,7 +75,7 @@ fun SplMeterScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(48.dp))
 
             Text(
-                text = String.format("%.1f", dbLevel),
+                text = String.format(java.util.Locale.getDefault(), "%.1f", dbLevel),
                 style = MaterialTheme.typography.displayLarge.copy(fontSize = 80.sp),
                 color = when {
                     dbLevel > 85 -> Color.Red

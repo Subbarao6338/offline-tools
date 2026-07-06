@@ -33,7 +33,7 @@ fun PomodoroScreen(navController: NavHostController) {
 
     val minutes = timeLeft / 60
     val seconds = timeLeft % 60
-    val timeDisplay = String.format("%02d:%02d", minutes, seconds)
+    val timeDisplay = String.format(java.util.Locale.getDefault(), "%02d:%02d", minutes, seconds)
 
     ToolScreen(
         title = "Pomodoro Timer",

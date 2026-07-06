@@ -52,14 +52,14 @@ fun BarometerScreen(navController: NavHostController) {
             if (!isSensorAvailable) {
                 Text("Pressure sensor not available", color = MaterialTheme.colorScheme.error)
             } else {
-                Text(text = String.format("%.2f", pressure), style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 80.sp), color = MaterialTheme.colorScheme.primary)
+                Text(text = String.format(java.util.Locale.getDefault(), "%.2f", pressure), style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 80.sp), color = MaterialTheme.colorScheme.primary)
                 Text(text = "hPa", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(48.dp))
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Inches of Mercury")
-                            Text(String.format("%.2f inHg", pressure * 0.02953f), fontWeight = FontWeight.Bold)
+                            Text(String.format(java.util.Locale.getDefault(), "%.2f inHg", pressure * 0.02953f), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

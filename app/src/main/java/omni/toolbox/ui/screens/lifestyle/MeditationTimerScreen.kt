@@ -69,7 +69,7 @@ fun MeditationTimerScreen(navController: NavHostController) {
             val minutes = timeLeft / 60
             val seconds = timeLeft % 60
             Text(
-                text = String.format("%02d:%02d", minutes, seconds),
+                text = String.format(java.util.Locale.getDefault(), "%02d:%02d", minutes, seconds),
                 style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp)
             )
 

@@ -57,7 +57,7 @@ fun ExposureCalculator() {
 
 fun calculateEV(iso: Float, f: Float, t: Float): String {
     val ev = Math.log( (f * f * 100.0) / (t * iso) ) / Math.log(2.0)
-    return String.format("%.1f", ev)
+    return String.format(java.util.Locale.getDefault(), "%.1f", ev)
 }
 
 @Composable
