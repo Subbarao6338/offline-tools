@@ -90,8 +90,8 @@ fun QuickTilesCreatorScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val statusBarManager = context.getSystemService(Context.STATUS_BAR_SERVICE) as StatusBarManager
-                        statusBarManager.requestAddTileService(
+                        val statusBarManager = context.getSystemService(StatusBarManager::class.java)
+                        statusBarManager?.requestAddTileService(
                             ComponentName(context, QuickTileService::class.java),
                             "Omni Dashboard",
                             android.graphics.drawable.Icon.createWithResource(context, android.R.drawable.ic_dialog_info),

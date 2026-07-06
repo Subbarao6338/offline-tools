@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 val NeonMint = Color(0xFF39FF14)
 val SlateDark = Color(0xFF121212)
 val CarbonGray = Color(0xFF1E1E1E)
-val SoftWhite = Color(0xFFF8F9FF)
+val SoftWhite = Color(0xFFFFFFFF)
 
 // Nature-Inspired Colors
 val LeafGreen = Color(0xFF4CAF50)
@@ -19,7 +19,7 @@ val ClayRed = Color(0xFFF44336)
 val EarthyYellow = Color(0xFFFFC107)
 
 // Light Theme Neutrals
-val NatureWhite = Color(0xFFFAFAF5)
+val NatureWhite = Color(0xFFFFFFFF)
 val NatureBeige = Color(0xFFF5F5DC)
 
 // Dark Theme Neutrals
