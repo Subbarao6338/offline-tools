@@ -235,6 +235,29 @@ object PdfUtils {
         document.close()
     }
 
+    fun cropPdf(pdfFile: File, outFile: File) {
+        val document = PDDocument.load(pdfFile)
+        for (page in document.pages) {
+            val mediaBox = page.mediaBox
+            val newWidth = mediaBox.width * 0.8f
+            val newHeight = mediaBox.height * 0.8f
+            val x = (mediaBox.width - newWidth) / 2
+            val y = (mediaBox.height - newHeight) / 2
+            page.cropBox = PDRectangle(x, y, newWidth, newHeight)
+        }
+        document.save(outFile)
+        document.close()
+    }
+
+    fun zipPdf(pdfFile: File, outFile: File) {
+        java.util.zip.ZipOutputStream(java.io.FileOutputStream(outFile)).use { zos ->
+            val entry = java.util.zip.ZipEntry(pdfFile.name)
+            zos.putNextEntry(entry)
+            pdfFile.inputStream().use { it.copyTo(zos) }
+            zos.closeEntry()
+        }
+    }
+
     fun textToPdf(text: String, outFile: File) {
         val document = PDDocument()
         val font = PDType1Font.HELVETICA
