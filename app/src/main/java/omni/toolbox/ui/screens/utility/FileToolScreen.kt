@@ -16,11 +16,12 @@ import androidx.navigation.NavHostController
 import omni.toolbox.ui.components.ToolScreen
 import omni.toolbox.data.remote.NASManager
 import omni.toolbox.model.common.FileItem
+import omni.toolbox.viewmodel.OmniViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
-fun FileToolScreen(navController: NavHostController, title: String) {
+fun FileToolScreen(navController: NavHostController, title: String, viewModel: OmniViewModel? = null) {
     val context = LocalContext.current
     val rootDir = context.filesDir
     var currentDir by remember { mutableStateOf(rootDir) }
@@ -94,7 +95,7 @@ fun FileToolScreen(navController: NavHostController, title: String) {
             }
 
             if (title == "Storage Cleaner") {
-                StorageCleanerHeader()
+                StorageCleanerHeader(viewModel?.storageUsage ?: "0 GB / 0 GB")
             }
 
             Text(
@@ -106,7 +107,7 @@ fun FileToolScreen(navController: NavHostController, title: String) {
 
             Box(modifier = Modifier.weight(1f)) {
                 when (storageMode) {
-                    "Cloud" -> CloudStorageView()
+                    "Cloud" -> CloudStorageView(viewModel)
                     "NAS" -> NASStorageView { server, share, user, pass, path ->
                         scope.launch {
                             val dest = File(context.cacheDir, "smb_download_${System.currentTimeMillis()}.tmp")
@@ -215,13 +216,23 @@ fun FileItemRow(item: FileItem, onRename: () -> Unit, onDelete: () -> Unit, onCl
 }
 
 @Composable
-fun CloudStorageView() {
+fun CloudStorageView(viewModel: OmniViewModel?) {
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Connected Accounts", style = MaterialTheme.typography.titleSmall)
         Spacer(Modifier.height(8.dp))
-        CloudAccountItem("Google Drive", "active", Icons.Default.CloudQueue)
-        CloudAccountItem("OneDrive", "not connected", Icons.Default.CloudOff)
-        CloudAccountItem("Mega.nz", "not connected", Icons.Default.Lock)
+
+        if (viewModel == null || viewModel.accounts.isEmpty()) {
+            Text("No cloud accounts connected.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+        } else {
+            viewModel.accounts.forEach { account ->
+                val icon = when (account.type) {
+                    "GDrive" -> Icons.Default.CloudQueue
+                    "OneDrive" -> Icons.Default.CloudOff
+                    else -> Icons.Default.Cloud
+                }
+                CloudAccountItem(account.type, if (account.isConnected) "active" else "disconnected", icon)
+            }
+        }
 
         Spacer(Modifier.height(24.dp))
         Button(onClick = {}, Modifier.fillMaxWidth()) {
@@ -271,7 +282,16 @@ fun NASStorageView(onConnect: (String, String, String, String, String) -> Unit) 
 }
 
 @Composable
-fun StorageCleanerHeader() {
+fun StorageCleanerHeader(storageUsage: String) {
+    val parts = storageUsage.split(" / ")
+    val usedStr = parts.getOrNull(0) ?: "0 GB"
+    val totalStr = parts.getOrNull(1) ?: "0 GB"
+
+    val usedValue = usedStr.substringBefore(" ").toFloatOrNull() ?: 0f
+    val totalValue = totalStr.substringBefore(" ").toFloatOrNull() ?: 1f
+    val progress = if (totalValue > 0) usedValue / totalValue else 0f
+    val freeValue = maxOf(0f, totalValue - usedValue)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -284,13 +304,13 @@ fun StorageCleanerHeader() {
             Text("Storage Usage", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
-                progress = { 0.75f },
+                progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Used: 48 GB", style = MaterialTheme.typography.bodySmall)
-                Text("Free: 16 GB", style = MaterialTheme.typography.bodySmall)
+                Text("Used: $usedStr", style = MaterialTheme.typography.bodySmall)
+                Text("Free: ${String.format("%.1f", freeValue)} GB", style = MaterialTheme.typography.bodySmall)
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = { /* Clean */ }, modifier = Modifier.align(Alignment.End)) {

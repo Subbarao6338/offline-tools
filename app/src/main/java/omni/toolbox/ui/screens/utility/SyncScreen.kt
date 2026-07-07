@@ -129,8 +129,12 @@ fun AccountCard(account: CloudAccount, onDelete: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val usedValue = account.storageUsed.substringBefore(" ").toFloatOrNull() ?: 0f
+                val totalValue = account.storageTotal.substringBefore(" ").toFloatOrNull() ?: 1f
+                val progress = if (totalValue > 0) usedValue / totalValue else 0f
+
                 LinearProgressIndicator(
-                    progress = { 0.7f }, // Hardcoded for demo
+                    progress = { progress },
                     modifier = Modifier.weight(1f).height(6.dp).clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
