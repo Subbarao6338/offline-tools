@@ -69,7 +69,7 @@ fun FaceSwapScreen(navController: NavHostController) {
                             val sourceBmp = loadBitmap(context, sourceImageUri!!)
                             val targetBmp = loadBitmap(context, targetImageUri!!)
                             if (sourceBmp != null && targetBmp != null) {
-                                val result = performFaceSwap(context, sourceBmp, targetBmp)
+                                val result = performFaceSwap(sourceBmp, targetBmp)
                                 if (result != null) {
                                     resultBitmap = result
                                 } else {
@@ -135,14 +135,36 @@ fun FaceSwapScreen(navController: NavHostController) {
 
 private suspend fun loadBitmap(context: Context, uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
     try {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        BitmapFactory.decodeStream(inputStream)
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
+        context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
+        }
+
+        var inSampleSize = 1
+        val reqWidth = 1024
+        val reqHeight = 1024
+        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+            val halfHeight: Int = options.outHeight / 2
+            val halfWidth: Int = options.outWidth / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        val finalOptions = BitmapFactory.Options().apply {
+            this.inSampleSize = inSampleSize
+        }
+        context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, finalOptions)
+        }
     } catch (e: Exception) {
         null
     }
 }
 
-private suspend fun performFaceSwap(context: Context, source: Bitmap, target: Bitmap): Bitmap? = withContext(Dispatchers.Default) {
+private suspend fun performFaceSwap(source: Bitmap, target: Bitmap): Bitmap? = withContext(Dispatchers.Default) {
     val options = FaceDetectorOptions.Builder()
         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
         .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
@@ -159,7 +181,6 @@ private suspend fun performFaceSwap(context: Context, source: Bitmap, target: Bi
 
     val resultBmp = target.copy(target.config ?: Bitmap.Config.ARGB_8888, true)
     val canvas = Canvas(resultBmp)
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     val sourceFace = sourceFaces[0]
     val sourceRect = sourceFace.boundingBox
@@ -174,11 +195,31 @@ private suspend fun performFaceSwap(context: Context, source: Bitmap, target: Bi
     for (targetFace in targetFaces) {
         val targetRect = targetFace.boundingBox
 
-        // Simple overlay with scaling
+        // Create a scaled version of the source face
         val scaledFace = Bitmap.createScaledBitmap(faceBmp, targetRect.width(), targetRect.height(), true)
 
-        // Draw the face onto the target
-        canvas.drawBitmap(scaledFace, targetRect.left.toFloat(), targetRect.top.toFloat(), paint)
+        // Use a mask to blend the face better (oval shape)
+        val layer = canvas.saveLayer(
+            targetRect.left.toFloat(),
+            targetRect.top.toFloat(),
+            targetRect.right.toFloat(),
+            targetRect.bottom.toFloat(),
+            null
+        )
+
+        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        canvas.drawOval(
+            targetRect.left.toFloat(),
+            targetRect.top.toFloat(),
+            targetRect.right.toFloat(),
+            targetRect.bottom.toFloat(),
+            maskPaint
+        )
+
+        maskPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(scaledFace, targetRect.left.toFloat(), targetRect.top.toFloat(), maskPaint)
+
+        canvas.restoreToCount(layer)
     }
 
     resultBmp

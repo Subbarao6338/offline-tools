@@ -277,7 +277,12 @@ private fun parseCsvLine(line: String, delimiter: String): List<String> {
     while (i < line.length) {
         val c = line[i]
         if (c == '\"') {
-            inQuotes = !inQuotes
+            if (inQuotes && i + 1 < line.length && line[i + 1] == '\"') {
+                cur.append('\"')
+                i++
+            } else {
+                inQuotes = !inQuotes
+            }
         } else if (line.substring(i).startsWith(delimiter) && !inQuotes) {
             result.add(cur.toString().trim())
             cur = StringBuilder()
