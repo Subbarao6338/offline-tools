@@ -68,6 +68,7 @@ fun SyncScreen(navController: NavHostController, viewModel: OmniViewModel) {
 @Composable
 fun AccountsTab(viewModel: OmniViewModel) {
     val scope = rememberCoroutineScope()
+    var showAddAccountDialog by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(
@@ -93,13 +94,62 @@ fun AccountsTab(viewModel: OmniViewModel) {
         }
 
         OutlinedButton(
-            onClick = { /* Add account */ },
+            onClick = { showAddAccountDialog = true },
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Add Cloud Service")
         }
+    }
+
+    if (showAddAccountDialog) {
+        var email by remember { mutableStateOf("") }
+        var selectedType by remember { mutableStateOf("GDrive") }
+        val types = listOf("GDrive", "Mega", "OneDrive", "Nextcloud")
+
+        AlertDialog(
+            onDismissRequest = { showAddAccountDialog = false },
+            title = { Text("Add Cloud Account") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Select Provider", style = MaterialTheme.typography.labelMedium)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        types.forEach { type ->
+                            FilterChip(
+                                selected = selectedType == type,
+                                onClick = { selectedType = type },
+                                label = { Text(type) }
+                            )
+                        }
+                    }
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email Address") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (email.isNotEmpty()) {
+                            viewModel.addAccount(selectedType, email)
+                            showAddAccountDialog = false
+                        }
+                    }
+                ) {
+                    Text("Add")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddAccountDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

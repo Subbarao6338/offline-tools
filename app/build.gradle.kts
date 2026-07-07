@@ -75,6 +75,8 @@ android {
             )
         }
         debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
     compileOptions {

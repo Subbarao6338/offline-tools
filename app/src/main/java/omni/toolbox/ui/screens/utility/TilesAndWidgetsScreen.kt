@@ -104,7 +104,7 @@ fun TilesAndWidgetsScreen(navController: NavHostController) {
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                "You can pin any tool directly to your home screen. Long-press the Omni Toolbox app icon on your home screen to see quick actions, or use the 'Add Shortcut' feature coming soon to individual tool screens.",
+                "You can pin any tool directly to your home screen. Long-press the Omni Toolbox app icon on your home screen to see quick actions, or use the 'Pin to Home' icon on individual tool screens.",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )

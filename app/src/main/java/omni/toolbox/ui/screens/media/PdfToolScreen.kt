@@ -143,6 +143,65 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                                             }
                                         }
                                     }
+                                    "Crop PDF" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val tempFile = File(context.cacheDir, "temp_crop.pdf")
+                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                tempFile.outputStream().use { output -> input.copyTo(output) }
+                                            }
+                                            val outPath = File(outputDir, "cropped_${System.currentTimeMillis()}.pdf")
+                                            omni.toolbox.utils.PdfUtils.cropPdf(tempFile, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "Cropped PDF: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                    "Zip PDF" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            val tempFile = File(context.cacheDir, "temp_zip.pdf")
+                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                tempFile.outputStream().use { output -> input.copyTo(output) }
+                                            }
+                                            val outPath = File(outputDir, "zipped_${System.currentTimeMillis()}.zip")
+                                            omni.toolbox.utils.PdfUtils.zipPdf(tempFile, outPath)
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "PDF Zipped: ${outPath.name}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                    "Print PDF" -> {
+                                        if (selectedFiles.isNotEmpty()) {
+                                            withContext(Dispatchers.Main) {
+                                                val printManager = context.getSystemService(Context.PRINT_SERVICE) as android.print.PrintManager
+                                                val jobName = "${context.getString(omni.toolbox.R.string.app_name)} Document"
+                                                printManager.print(jobName, object : android.print.PrintDocumentAdapter() {
+                                                    override fun onLayout(oldAttributes: android.print.PrintAttributes?, newAttributes: android.print.PrintAttributes?, cancellationSignal: android.os.CancellationSignal?, callback: LayoutResultCallback?, extras: android.os.Bundle?) {
+                                                        if (cancellationSignal?.isCanceled == true) {
+                                                            callback?.onLayoutCancelled()
+                                                            return
+                                                        }
+                                                        val info = android.print.PrintDocumentInfo.Builder(jobName)
+                                                            .setContentType(android.print.PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                                                            .build()
+                                                        callback?.onLayoutFinished(info, true)
+                                                    }
+
+                                                    override fun onWrite(pages: Array<out android.print.PageRange>?, destination: android.os.ParcelFileDescriptor?, cancellationSignal: android.os.CancellationSignal?, callback: WriteResultCallback?) {
+                                                        try {
+                                                            context.contentResolver.openInputStream(selectedFiles[0])?.use { input ->
+                                                                FileOutputStream(destination?.fileDescriptor).use { output ->
+                                                                    input.copyTo(output)
+                                                                }
+                                                            }
+                                                            callback?.onWriteFinished(arrayOf(android.print.PageRange.ALL_PAGES))
+                                                        } catch (e: Exception) {
+                                                            callback?.onWriteFailed(e.message)
+                                                        }
+                                                    }
+                                                }, null)
+                                            }
+                                        }
+                                    }
                                     "Text to PDF" -> {
                                         if (textContent.isNotEmpty()) {
                                             val outPath = File(outputDir, "text_${System.currentTimeMillis()}.pdf")
@@ -395,7 +454,7 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                                     else -> {
                                         delay(1500)
                                         withContext(Dispatchers.Main) {
-                                            Toast.makeText(context, "Action '$title' coming soon", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "Feature '$title' not fully supported in this version.", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 }

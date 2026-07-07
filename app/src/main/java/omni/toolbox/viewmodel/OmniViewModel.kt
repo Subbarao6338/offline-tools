@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -14,7 +15,10 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import android.provider.CallLog
+import android.provider.Telephony
 import androidx.compose.runtime.*
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -363,15 +369,210 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     val restoreLogs: StateFlow<List<RestoreLog>> = _restoreLogs.asStateFlow()
 
     init {
-        // Seed demo accounts
-        _accounts.addAll(listOf(
-            CloudAccount("1", "GDrive", "omni.user@gmail.com", "12.4 GB", "15.0 GB"),
-            CloudAccount("2", "Mega", "omni.user@outlook.com", "2.1 GB", "20.0 GB")
-        ))
+        loadPersistedData()
+        if (_accounts.isEmpty()) {
+            // Seed demo accounts if none persisted
+            _accounts.addAll(listOf(
+                CloudAccount("1", "GDrive", "omni.user@gmail.com", "12.4 GB", "15.0 GB"),
+                CloudAccount("2", "Mega", "omni.user@outlook.com", "2.1 GB", "20.0 GB")
+            ))
+        }
 
         startSystemMonitoring()
-        launchSystemStatsBackground()
         initShakeDetector()
+        refreshTelemetry()
+    }
+
+    private fun loadPersistedData() {
+        val prefs = context.getSharedPreferences("omni_persistence", Context.MODE_PRIVATE)
+
+        // Load Accounts
+        prefs.getString("accounts_json", null)?.let { json ->
+            try {
+                val array = JSONArray(json)
+                _accounts.clear()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    _accounts.add(CloudAccount(
+                        obj.getString("id"),
+                        obj.getString("type"),
+                        obj.getString("email"),
+                        obj.getString("storageUsed"),
+                        obj.getString("storageTotal"),
+                        obj.optBoolean("isConnected", true)
+                    ))
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+
+        // Load Benchmark History
+        prefs.getString("benchmark_history_json", null)?.let { json ->
+            try {
+                val array = JSONArray(json)
+                val list = mutableListOf<BenchmarkResult>()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    list.add(BenchmarkResult(
+                        obj.getString("name"),
+                        obj.getInt("scoreCpu"),
+                        obj.getInt("scoreGpu"),
+                        obj.getInt("scoreMem"),
+                        obj.getInt("scoreStorage"),
+                        obj.getString("rating"),
+                        obj.getString("timestamp")
+                    ))
+                }
+                benchmarkHistory.value = list
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+
+        // Load Automation Rules
+        prefs.getString("automation_rules_json", null)?.let { json ->
+            try {
+                val array = JSONArray(json)
+                val list = mutableListOf<AutomationRule>()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    list.add(AutomationRule(
+                        obj.getInt("id"),
+                        obj.getString("name"),
+                        obj.getString("triggerType"),
+                        obj.getString("actionType"),
+                        obj.getBoolean("isActive")
+                    ))
+                }
+                automationRules.value = list
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+
+        // Load Documents
+        prefs.getString("documents_json", null)?.let { json ->
+            try {
+                val array = JSONArray(json)
+                val list = mutableListOf<DocumentItem>()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    list.add(DocumentItem(
+                        obj.getInt("id"),
+                        obj.getString("fileName"),
+                        obj.getString("fileType"),
+                        obj.getString("content"),
+                        obj.getString("accountEmail"),
+                        obj.getLong("lastAccessed"),
+                        obj.getInt("bookmarkedPage"),
+                        obj.getBoolean("isLocal")
+                    ))
+                }
+                documents.value = list
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+
+        // Load Scraping Rules
+        prefs.getString("scraping_rules_json", null)?.let { json ->
+            try {
+                val array = JSONArray(json)
+                val list = mutableListOf<ScrapingRule>()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    list.add(ScrapingRule(
+                        obj.getInt("id"),
+                        obj.getString("ruleName"),
+                        obj.getString("targetDomain"),
+                        obj.getInt("threadLevels"),
+                        obj.getInt("maxPagesPerThread"),
+                        obj.getBoolean("extractImages"),
+                        obj.getBoolean("extractVideos"),
+                        obj.getBoolean("extractDocuments"),
+                        obj.getInt("notionProfileId"),
+                        obj.getBoolean("isActive")
+                    ))
+                }
+                scrapingRules.value = list
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
+    private fun persistData() {
+        val prefs = context.getSharedPreferences("omni_persistence", Context.MODE_PRIVATE)
+        val edit = prefs.edit()
+
+        // Persist Accounts
+        val accountsArray = JSONArray()
+        _accounts.forEach {
+            val obj = JSONObject()
+            obj.put("id", it.id)
+            obj.put("type", it.type)
+            obj.put("email", it.email)
+            obj.put("storageUsed", it.storageUsed)
+            obj.put("storageTotal", it.storageTotal)
+            obj.put("isConnected", it.isConnected)
+            accountsArray.put(obj)
+        }
+        edit.putString("accounts_json", accountsArray.toString())
+
+        // Persist Benchmark History
+        val benchArray = JSONArray()
+        benchmarkHistory.value.forEach {
+            val obj = JSONObject()
+            obj.put("name", it.name)
+            obj.put("scoreCpu", it.scoreCpu)
+            obj.put("scoreGpu", it.scoreGpu)
+            obj.put("scoreMem", it.scoreMem)
+            obj.put("scoreStorage", it.scoreStorage)
+            obj.put("rating", it.rating)
+            obj.put("timestamp", it.timestamp)
+            benchArray.put(obj)
+        }
+        edit.putString("benchmark_history_json", benchArray.toString())
+
+        // Persist Automation Rules
+        val rulesArray = JSONArray()
+        automationRules.value.forEach {
+            val obj = JSONObject()
+            obj.put("id", it.id)
+            obj.put("name", it.name)
+            obj.put("triggerType", it.triggerType)
+            obj.put("actionType", it.actionType)
+            obj.put("isActive", it.isActive)
+            rulesArray.put(obj)
+        }
+        edit.putString("automation_rules_json", rulesArray.toString())
+
+        // Persist Documents
+        val docsArray = JSONArray()
+        documents.value.forEach {
+            val obj = JSONObject()
+            obj.put("id", it.id)
+            obj.put("fileName", it.fileName)
+            obj.put("fileType", it.fileType)
+            obj.put("content", it.content)
+            obj.put("accountEmail", it.accountEmail)
+            obj.put("lastAccessed", it.lastAccessed)
+            obj.put("bookmarkedPage", it.bookmarkedPage)
+            obj.put("isLocal", it.isLocal)
+            docsArray.put(obj)
+        }
+        edit.putString("documents_json", docsArray.toString())
+
+        // Persist Scraping Rules
+        val sRulesArray = JSONArray()
+        scrapingRules.value.forEach {
+            val obj = JSONObject()
+            obj.put("id", it.id)
+            obj.put("ruleName", it.ruleName)
+            obj.put("targetDomain", it.targetDomain)
+            obj.put("threadLevels", it.threadLevels)
+            obj.put("maxPagesPerThread", it.maxPagesPerThread)
+            obj.put("extractImages", it.extractImages)
+            obj.put("extractVideos", it.extractVideos)
+            obj.put("extractDocuments", it.extractDocuments)
+            obj.put("notionProfileId", it.notionProfileId)
+            obj.put("isActive", it.isActive)
+            sRulesArray.put(obj)
+        }
+        edit.putString("scraping_rules_json", sRulesArray.toString())
+
+        edit.apply()
     }
 
     private fun initShakeDetector() {
@@ -394,20 +595,6 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun launchSystemStatsBackground() {
-        viewModelScope.launch(Dispatchers.Default) {
-            while (true) {
-                _systemHealth.value = SystemHealth(
-                    cpuLoad = Random.nextFloat() * 45f + 10f,
-                    memoryUsedMb = Random.nextLong(2200, 2450),
-                    memoryMaxMb = 4096,
-                    temperatureC = Random.nextFloat() * 12f + 32f,
-                    batteryLevel = Random.nextInt(78, 86)
-                )
-                delay(3000)
-            }
-        }
-    }
 
     private var lastCpuStats: Pair<Long, Long>? = null
 
@@ -453,12 +640,6 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
         }
         lastCpuStats = currentStats
 
-        _systemHealth.value = _systemHealth.value.copy(
-            cpuLoad = actualCpuLoad * 100f,
-            memoryUsedMb = totalRam - availableRam,
-            memoryMaxMb = totalRam
-        )
-
         kernelVersion = System.getProperty("os.version") ?: "Unknown"
         supportedAbis = android.os.Build.SUPPORTED_ABIS.joinToString(", ")
 
@@ -481,6 +662,29 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
         val totalStorage = (totalBlocks * blockSize) / (1024 * 1024 * 1024)
         val availableStorage = (availableBlocks * blockSize) / (1024 * 1024 * 1024)
         storageUsage = "${totalStorage - availableStorage} GB / $totalStorage GB"
+
+        _systemHealth.value = SystemHealth(
+            cpuLoad = actualCpuLoad * 100f,
+            memoryUsedMb = totalRam - availableRam,
+            memoryMaxMb = totalRam,
+            temperatureC = getCpuTemperature(),
+            batteryLevel = batteryLevel
+        )
+    }
+
+    private fun getCpuTemperature(): Float {
+        // Attempt to read from common thermal zones
+        val thermalFiles = listOf(
+            "/sys/class/thermal/thermal_zone0/temp",
+            "/sys/class/thermal/thermal_zone1/temp"
+        )
+        thermalFiles.forEach { path ->
+            try {
+                val temp = java.io.File(path).readText().trim().toLong()
+                return if (temp > 1000) temp / 1000f else temp.toFloat()
+            } catch (e: Exception) {}
+        }
+        return 36.5f // Fallback
     }
 
     fun addLog(message: String) {
@@ -508,6 +712,21 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
 
     fun removeAccount(id: String) {
         _accounts.removeIf { it.id == id }
+        persistData()
+    }
+
+    fun addAccount(type: String, email: String) {
+        val id = UUID.randomUUID().toString()
+        val storageUsed = "0 GB"
+        val storageTotal = when(type) {
+            "GDrive" -> "15 GB"
+            "Mega" -> "20 GB"
+            "OneDrive" -> "5 GB"
+            else -> "10 GB"
+        }
+        _accounts.add(CloudAccount(id, type, email, storageUsed, storageTotal))
+        addLog("Cloud: Added new $type account for $email")
+        persistData()
     }
 
     fun runAllBenchmarks() {
@@ -615,7 +834,8 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
             )
 
             lastBenchmarkResult.value = finalResult
-            benchmarkHistory.value = listOf(finalResult) + benchmarkHistory.value.filter { it.name != finalResult.name }
+            benchmarkHistory.value = (listOf(finalResult) + benchmarkHistory.value.filter { it.name != finalResult.name }).take(10)
+            persistData()
             benchmarkProgress.floatValue = 1.0f
             benchmarkStatus.value = "Benchmarks completed!"
             isBenchmarking.value = false
@@ -672,11 +892,13 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
         val newRule = AutomationRule(Random.nextInt(), name, trigger, action)
         automationRules.value = automationRules.value + newRule
         addLog("Automation: Added rule $name")
+        persistData()
     }
 
     fun deleteRule(id: Int) {
         automationRules.value = automationRules.value.filter { it.id != id }
         addLog("Automation: Deleted rule ID $id")
+        persistData()
     }
 
     // --- Ported Telemetry Methods ---
@@ -727,16 +949,19 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     fun addDocument(name: String, type: String, content: String) {
         val newDoc = DocumentItem(Random.nextInt(), name, type, content)
         documents.value = documents.value + newDoc
+        persistData()
     }
 
     fun deleteDocument(id: Int) {
         documents.value = documents.value.filter { it.id != id }
+        persistData()
     }
 
     fun updateDocumentBookmark(doc: DocumentItem, page: Int) {
         documents.value = documents.value.map {
             if (it.id == doc.id) it.copy(bookmarkedPage = page, lastAccessed = System.currentTimeMillis()) else it
         }
+        persistData()
     }
 
     fun startCustomWebCrawl(
@@ -875,13 +1100,84 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     fun addScrapingRule(name: String, domain: String, threadLevels: Int, maxPages: Int, images: Boolean, videos: Boolean, documents: Boolean, profileId: Int) {
         val newRule = ScrapingRule(Random.nextInt(), name, domain, threadLevels, maxPages, images, videos, documents, profileId)
         scrapingRules.value = scrapingRules.value + newRule
+        persistData()
     }
 
     fun deleteScrapingRule(id: Int) {
         scrapingRules.value = scrapingRules.value.filter { it.id != id }
+        persistData()
     }
 
     // --- Ported Call/SMS Methods ---
+    fun fetchCallLogs() {
+        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
+            addLog("System: Permission READ_CALL_LOG not granted.")
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val list = mutableListOf<CallLogItem>()
+            val cursor = context.contentResolver.query(
+                CallLog.Calls.CONTENT_URI,
+                null, null, null, CallLog.Calls.DATE + " DESC"
+            )
+            cursor?.use {
+                val numberIdx = it.getColumnIndex(CallLog.Calls.NUMBER)
+                val typeIdx = it.getColumnIndex(CallLog.Calls.TYPE)
+                val dateIdx = it.getColumnIndex(CallLog.Calls.DATE)
+                val durationIdx = it.getColumnIndex(CallLog.Calls.DURATION)
+                val nameIdx = it.getColumnIndex(CallLog.Calls.CACHED_NAME)
+
+                var count = 0
+                while (it.moveToNext() && count < 50) {
+                    val number = it.getString(numberIdx)
+                    val type = when (it.getInt(typeIdx)) {
+                        CallLog.Calls.INCOMING_TYPE -> "INCOMING"
+                        CallLog.Calls.OUTGOING_TYPE -> "OUTGOING"
+                        CallLog.Calls.MISSED_TYPE -> "MISSED"
+                        else -> "OTHER"
+                    }
+                    val date = java.text.SimpleDateFormat("MMM dd, hh:mm a", java.util.Locale.getDefault()).format(java.util.Date(it.getLong(dateIdx)))
+                    val duration = "${it.getInt(durationIdx)}s"
+                    val name = it.getString(nameIdx) ?: "Unknown"
+                    list.add(CallLogItem(UUID.randomUUID().toString(), name, number, type, date, duration))
+                    count++
+                }
+            }
+            if (list.isNotEmpty()) _callLogs.value = list
+        }
+    }
+
+    fun fetchSmsMessages() {
+        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            addLog("System: Permission READ_SMS not granted.")
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val list = mutableListOf<SmsItem>()
+            val cursor = context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                null, null, null, Telephony.Sms.DATE + " DESC"
+            )
+            cursor?.use {
+                val addressIdx = it.getColumnIndex(Telephony.Sms.ADDRESS)
+                val bodyIdx = it.getColumnIndex(Telephony.Sms.BODY)
+                val typeIdx = it.getColumnIndex(Telephony.Sms.TYPE)
+                val dateIdx = it.getColumnIndex(Telephony.Sms.DATE)
+
+                var count = 0
+                while (it.moveToNext() && count < 50) {
+                    val address = it.getString(addressIdx)
+                    val body = it.getString(bodyIdx)
+                    val type = if (it.getInt(typeIdx) == Telephony.Sms.MESSAGE_TYPE_INBOX) "INBOX" else "SENT"
+                    val date = java.text.SimpleDateFormat("MMM dd, hh:mm a", java.util.Locale.getDefault()).format(java.util.Date(it.getLong(dateIdx)))
+                    list.add(SmsItem(UUID.randomUUID().toString(), address, body, type, date))
+                    count++
+                }
+            }
+            if (list.isNotEmpty()) _smsMessages.value = list
+        }
+    }
+
     fun addCallLog(name: String, number: String, type: String, duration: String) {
         val newLog = CallLogItem(Random.nextInt(10000, 99999).toString(), name, number, type, "Just Now", duration)
         _callLogs.value = listOf(newLog) + _callLogs.value
@@ -1145,5 +1441,16 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     fun stopLocalShare() {
         _shareSession.value = null
         addLog("Local File Share WebServer shut down successfully.")
+    }
+
+    private fun refreshTelemetry() {
+        viewModelScope.launch {
+            _wifiDataUsedMb.value = TrafficStats.getTotalRxBytes() / (1024f * 1024f)
+            _mobileDataUsedMb.value = TrafficStats.getMobileRxBytes() / (1024f * 1024f)
+
+            // Try to fetch call/sms if permissions allow (usually will fail in demo but works if granted)
+            fetchCallLogs()
+            fetchSmsMessages()
+        }
     }
 }
