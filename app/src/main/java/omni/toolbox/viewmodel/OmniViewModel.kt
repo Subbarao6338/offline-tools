@@ -253,11 +253,7 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     val benchmarkProgress = mutableFloatStateOf(0f)
     val benchmarkStatus = mutableStateOf("Ready to profile system parameters.")
     val lastBenchmarkResult = mutableStateOf<BenchmarkResult?>(null)
-    val benchmarkHistory = mutableStateOf<List<BenchmarkResult>>(listOf(
-        BenchmarkResult("Pixel 8 Pro (Ref)", 9820, 11400, 8900, 9500, "Excellent Performance", "Yesterday"),
-        BenchmarkResult("Galaxy S24 Ultra (Ref)", 10500, 12800, 9900, 11200, "Flagship Elite", "Yesterday"),
-        BenchmarkResult("Pixel 7a (Ref)", 7400, 8100, 6800, 7100, "Good Performance", "Yesterday")
-    ))
+    val benchmarkHistory = mutableStateOf<List<BenchmarkResult>>(listOf())
 
     // --- Hidden System Settings States ---
     val animationScale = mutableFloatStateOf(1.0f)
@@ -272,61 +268,43 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     val logBufferSize = mutableStateOf("256K")
 
     // --- Automation Rules ---
-    val automationRules = mutableStateOf<List<AutomationRule>>(listOf(
-        AutomationRule(1, "Auto Cleanup Duplicate Images", "TIMER", "CLEAN_CACHE"),
-        AutomationRule(2, "Trigger Password Gen on Shake", "SHAKE", "PASSWORD_GEN")
-    ))
+    val automationRules = mutableStateOf<List<AutomationRule>>(listOf())
 
     // --- Ported Telemetry States ---
-    private val _screenTimeTodayMinutes = MutableStateFlow(228)
+    private val _screenTimeTodayMinutes = MutableStateFlow(0)
     val screenTimeTodayMinutes: StateFlow<Int> = _screenTimeTodayMinutes.asStateFlow()
 
     private val _screenLimitMinutes = MutableStateFlow(240)
     val screenLimitMinutes: StateFlow<Int> = _screenLimitMinutes.asStateFlow()
 
-    private val _topAppsScreenTime = MutableStateFlow(listOf(
-        AppScreenTime("YouTube", "com.google.android.youtube", 85, "youtube"),
-        AppScreenTime("Instagram", "com.instagram.android", 45, "instagram"),
-        AppScreenTime("WhatsApp", "com.whatsapp", 35, "whatsapp"),
-        AppScreenTime("Chrome", "com.android.chrome", 25, "chrome")
-    ))
+    private val _topAppsScreenTime = MutableStateFlow(listOf<AppScreenTime>())
     val topAppsScreenTime: StateFlow<List<AppScreenTime>> = _topAppsScreenTime.asStateFlow()
 
-    private val _screenUnlocksToday = MutableStateFlow(32)
+    private val _screenUnlocksToday = MutableStateFlow(0)
     val screenUnlocksToday: StateFlow<Int> = _screenUnlocksToday.asStateFlow()
 
-    private val _unlockEvents = MutableStateFlow(listOf(
-        UnlockLogEvent("1", "11:24 AM", "Fingerprint"),
-        UnlockLogEvent("2", "10:45 AM", "Face Unlock")
-    ))
+    private val _unlockEvents = MutableStateFlow(listOf<UnlockLogEvent>())
     val unlockEvents: StateFlow<List<UnlockLogEvent>> = _unlockEvents.asStateFlow()
 
-    private val _unlocksByHour = MutableStateFlow(List(24) { if (it in 7..15) Random.nextInt(1, 5) else 0 })
+    private val _unlocksByHour = MutableStateFlow(List(24) { 0 })
     val unlocksByHour: StateFlow<List<Int>> = _unlocksByHour.asStateFlow()
 
-    private val _wifiDataUsedMb = MutableStateFlow(2450.5f)
+    private val _wifiDataUsedMb = MutableStateFlow(0f)
     val wifiDataUsedMb: StateFlow<Float> = _wifiDataUsedMb.asStateFlow()
 
-    private val _mobileDataUsedMb = MutableStateFlow(348.5f)
+    private val _mobileDataUsedMb = MutableStateFlow(0f)
     val mobileDataUsedMb: StateFlow<Float> = _mobileDataUsedMb.asStateFlow()
 
     private val _mobileDataLimitMb = MutableStateFlow(500f)
     val mobileDataLimitMb: StateFlow<Float> = _mobileDataLimitMb.asStateFlow()
 
-    private val _topAppsDataUsage = MutableStateFlow(listOf(
-        AppDataUsage("Chrome", 1200f, 150f),
-        AppDataUsage("YouTube", 800f, 120f),
-        AppDataUsage("Instagram", 310f, 55f)
-    ))
+    private val _topAppsDataUsage = MutableStateFlow(listOf<AppDataUsage>())
     val topAppsDataUsage: StateFlow<List<AppDataUsage>> = _topAppsDataUsage.asStateFlow()
 
-    private val _notificationsCountToday = MutableStateFlow(124)
+    private val _notificationsCountToday = MutableStateFlow(0)
     val notificationsCountToday: StateFlow<Int> = _notificationsCountToday.asStateFlow()
 
-    private val _notificationLogs = MutableStateFlow(listOf(
-        NotificationLogEvent("1", "WhatsApp", "System", "Cloud sync automation rules updated.", "Communication", "11:28 AM"),
-        NotificationLogEvent("2", "System", "Battery Alert", "Battery level is healthy.", "System", "11:15 AM")
-    ))
+    private val _notificationLogs = MutableStateFlow(listOf<NotificationLogEvent>())
     val notificationLogs: StateFlow<List<NotificationLogEvent>> = _notificationLogs.asStateFlow()
 
     // --- Ported Scraper & Doc States ---
@@ -336,39 +314,22 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     private val _systemHealth = MutableStateFlow(SystemHealth())
     val systemHealth: StateFlow<SystemHealth> = _systemHealth.asStateFlow()
 
-    val documents = mutableStateOf<List<DocumentItem>>(listOf(
-        DocumentItem(1, "Project_Specs.docx", "DOCX", "Section 1: App Modules. Section 2: Scraper Rules."),
-        DocumentItem(2, "System_Diagnostic.pdf", "PDF", "Page 1: System Boot Success.")
-    ))
+    val documents = mutableStateOf<List<DocumentItem>>(listOf())
 
     val crawledThreads = mutableStateOf<List<ScrapedThread>>(emptyList())
-    val scrapingRules = mutableStateOf<List<ScrapingRule>>(listOf(
-        ScrapingRule(1, "Xossipy Forum Scraper", "https://xossipy.com")
-    ))
+    val scrapingRules = mutableStateOf<List<ScrapingRule>>(listOf())
 
     // --- Ported Call/SMS States ---
-    private val _callLogs = MutableStateFlow<List<CallLogItem>>(listOf(
-        CallLogItem("1", "Subbu", "+91 98765 00001", "OUTGOING", "Today, 11:42 AM", "3m 15s"),
-        CallLogItem("2", "Office", "+1-415-555-2673", "INCOMING", "Today, 10:15 AM", "12m 40s")
-    ))
+    private val _callLogs = MutableStateFlow<List<CallLogItem>>(listOf())
     val callLogs: StateFlow<List<CallLogItem>> = _callLogs.asStateFlow()
 
-    private val _smsMessages = MutableStateFlow<List<SmsItem>>(listOf(
-        SmsItem("1", "Google", "Your verification code is 884-204.", "INBOX", "Today, 10:14 AM"),
-        SmsItem("2", "Bank", "Transaction successful. Ref: ONMTB5", "INBOX", "Today, 10:16 AM")
-    ))
+    private val _smsMessages = MutableStateFlow<List<SmsItem>>(listOf())
     val smsMessages: StateFlow<List<SmsItem>> = _smsMessages.asStateFlow()
 
     private val _restoreLogs = MutableStateFlow<List<RestoreLog>>(emptyList())
     val restoreLogs: StateFlow<List<RestoreLog>> = _restoreLogs.asStateFlow()
 
     init {
-        // Seed demo accounts
-        _accounts.addAll(listOf(
-            CloudAccount("1", "GDrive", "omni.user@gmail.com", "12.4 GB", "15.0 GB"),
-            CloudAccount("2", "Mega", "omni.user@outlook.com", "2.1 GB", "20.0 GB")
-        ))
-
         startSystemMonitoring()
         launchSystemStatsBackground()
         initShakeDetector()
@@ -951,10 +912,7 @@ class OmniViewModel(application: Application) : AndroidViewModel(application) {
     private val _shareSession = MutableStateFlow<ShareSession?>(null)
     val shareSession: StateFlow<ShareSession?> = _shareSession.asStateFlow()
 
-    val profiles = mutableStateOf<List<AccountProfile>>(listOf(
-        AccountProfile(1, "Notion", "Notion Developer", "dev@notion.com", "secret_12345", true),
-        AccountProfile(2, "GDrive", "GDrive Main", "drive@google.com", "oauth_tok_abc", true)
-    ))
+    val profiles = mutableStateOf<List<AccountProfile>>(listOf())
 
     fun addProfile(platform: String, name: String, email: String, token: String) {
         val newProfile = AccountProfile(Random.nextInt(), platform, name, email, token, true)

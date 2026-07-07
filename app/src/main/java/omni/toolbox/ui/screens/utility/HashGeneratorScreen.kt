@@ -43,7 +43,7 @@ fun HashGeneratorScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = input,
                 onValueChange = { input = it },
-                placeholder = { Text("Enter string to process...") },
+                placeholder = { Text("") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )

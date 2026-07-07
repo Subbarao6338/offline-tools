@@ -40,7 +40,7 @@ fun MetaTagScreen(navController: NavHostController) {
                     onValueChange = { urlInput = it },
                     modifier = Modifier.weight(1f),
                     label = { Text("Website URL") },
-                    placeholder = { Text("example.com") }
+                    placeholder = { Text("") }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = {

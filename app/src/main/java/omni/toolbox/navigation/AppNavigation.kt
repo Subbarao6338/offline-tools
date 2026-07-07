@@ -349,7 +349,7 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         route == "call_history" -> HistoryScreen(navController)
         route == "contacts" -> ContactsScreen(navController)
         route == "messages" -> MessagesScreen(navController)
-        listOf("doc_scanner", "duplicate_finder", "file_explorer", "file_shredder", "sql_format", "zip_unzip", "storage_cleaner").contains(route) -> FileToolScreen(navController, tool.name)
+        listOf("doc_scanner", "duplicate_finder", "file_explorer", "file_shredder", "sql_format", "zip_unzip", "storage_cleaner").contains(route) -> FileToolScreen(navController, tool.name, omniViewModel)
         route == "vocal_remover" || route == "ai_stems_splitter" -> VocalRemoverScreen(navController, tool.name)
         route == "wave_generator" || route == "noise_generator" -> AudioGeneratorScreen(navController, tool.name)
         route == "m_8d_audio" -> AudioToolScreen(navController, tool.name)
@@ -411,6 +411,8 @@ fun CategoryFallbackDispatcher(navController: NavHostController, tool: Tool, aiA
     val route = tool.route
     val category = tool.category
 
+    val omniViewModel: OmniViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
     when (category) {
         "Games" -> GameToolScreen(navController, tool.name)
         "Network" -> if (route == "device_discovery" || route == "wifi_anal" || route == "subnet_calc") NetworkInfoScreen(navController) else NetworkToolScreen(navController, tool.name)
@@ -421,10 +423,10 @@ fun CategoryFallbackDispatcher(navController: NavHostController, tool: Tool, aiA
         "Device", "Security", "Utilities" -> if (route == "thermal_info") SensorDataScreen(navController) else SystemLabScreen(navController, tool.name)
         "Weather" -> EnvironmentToolScreen(navController, tool.name)
         "Travel" -> OutdoorToolScreen(navController, tool.name)
-        "Documents" -> FileToolScreen(navController, tool.name)
+        "Documents" -> FileToolScreen(navController, tool.name, omniViewModel)
         "DIY", "Education" -> EngineeringToolScreen(navController, tool.name)
         "Developer" -> DeveloperExpertScreen(navController, tool.name)
-        "Data" -> if (route == "yaml_to_json") DeveloperExpertScreen(navController, tool.name) else FileToolScreen(navController, tool.name)
+        "Data" -> if (route == "yaml_to_json") DeveloperExpertScreen(navController, tool.name) else FileToolScreen(navController, tool.name, omniViewModel)
         "Web" -> WebToolScreen(navController, initialUrl = "https://www.google.com", title = tool.name)
         "Design" -> ColorToolsScreen(navController)
         "AI Tools" -> ChatToolScreen(navController, tool.name, aiApiKey)
