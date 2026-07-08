@@ -93,6 +93,7 @@ fun MarkdownRenderer(markdown: String) {
         factory = { context ->
             WebView(context).apply {
                 webViewClient = WebViewClient()
+                @Suppress("SetJavaScriptEnabled")
                 settings.javaScriptEnabled = true
             }
         },

@@ -377,6 +377,7 @@ fun WebToolScreen(
                                     }
                                 }
                                 settings.apply {
+                                    @Suppress("SetJavaScriptEnabled")
                                     javaScriptEnabled = true
                                     databaseEnabled = true
                                     domStorageEnabled = true

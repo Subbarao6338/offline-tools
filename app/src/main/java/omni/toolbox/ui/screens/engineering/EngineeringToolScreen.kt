@@ -60,9 +60,9 @@ fun EngineeringToolScreen(navController: NavHostController, title: String) {
 
 @Composable
 fun ResistorCalculator() {
-    var band1 by remember { mutableStateOf(0) }
-    var band2 by remember { mutableStateOf(0) }
-    var multiplier by remember { mutableStateOf(1) }
+    var band1 by remember { mutableIntStateOf(0) }
+    var band2 by remember { mutableIntStateOf(0) }
+    var multiplier by remember { mutableIntStateOf(1) }
 
     val colors = listOf(
         Color.Black, Color(0xFF8B4513), Color.Red, Color(0xFFFFA500),

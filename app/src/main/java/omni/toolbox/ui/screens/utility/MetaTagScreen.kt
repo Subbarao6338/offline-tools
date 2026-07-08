@@ -84,6 +84,7 @@ fun MetaTagScreen(navController: NavHostController) {
             AndroidView(
                 factory = {
                     WebView(it).apply {
+                        @Suppress("SetJavaScriptEnabled")
                         settings.javaScriptEnabled = true
                         webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
