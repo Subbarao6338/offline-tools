@@ -435,14 +435,27 @@ fun UnitPriceCalculator() {
 
 @Composable
 fun CoinTracker() {
-    val coins = remember { listOf("Bitcoin" to 65432.10, "Ethereum" to 3456.78, "Solana" to 145.67, "Cardano" to 0.45) }
+    val coins = remember {
+        listOf(
+            "Bitcoin (BTC)" to 67234.50,
+            "Ethereum (ETH)" to 3542.12,
+            "Solana (SOL)" to 154.23,
+            "Binance Coin (BNB)" to 584.10,
+            "Cardano (ADA)" to 0.46,
+            "Ripple (XRP)" to 0.52,
+            "Polkadot (DOT)" to 7.21,
+            "Chainlink (LINK)" to 18.45,
+            "Avalanche (AVAX)" to 36.78,
+            "Dogecoin (DOGE)" to 0.16
+        )
+    }
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Market Prices (Live-sim)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text("Market Prices (Reference)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         coins.forEach { (name, price) ->
             ListItem(
                 headlineContent = { Text(name) },
-                trailingContent = { Text("$${"%,.2f".format(price)}") },
+                trailingContent = { Text("$${java.lang.String.format(java.util.Locale.getDefault(), "%,.2f", price)}") },
                 leadingContent = { Icon(Icons.Default.MonetizationOn, null) }
             )
         }
@@ -462,13 +475,29 @@ fun NftViewer() {
 
 @Composable
 fun CurrencyTrends() {
+    val trends = remember {
+        listOf(
+            "EUR / USD" to "1.0854 (+0.12%)",
+            "USD / JPY" to "151.62 (-0.05%)",
+            "GBP / USD" to "1.2634 (+0.08%)",
+            "USD / CHF" to "0.9021 (+0.15%)",
+            "AUD / USD" to "0.6512 (-0.21%)",
+            "USD / CAD" to "1.3542 (+0.03%)",
+            "NZD / USD" to "0.5987 (-0.11%)"
+        )
+    }
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Currency Trends (24h)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text("Currency Trends (Reference)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
-        listOf("USD/EUR" to "+0.25%", "GBP/USD" to "-0.12%", "USD/JPY" to "+0.45%").forEach { (pair, trend) ->
+        trends.forEach { (pair, trend) ->
             ListItem(
                 headlineContent = { Text(pair) },
-                trailingContent = { Text(trend, color = if (trend.startsWith("+")) Color.Green else Color.Red) }
+                trailingContent = {
+                    Text(
+                        text = trend,
+                        color = if (trend.contains("+")) Color(0xFF4CAF50) else Color.Red
+                    )
+                }
             )
         }
     }

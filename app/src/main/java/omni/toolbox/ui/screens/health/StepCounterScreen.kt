@@ -20,8 +20,8 @@ import omni.toolbox.ui.components.ToolScreen
 @Composable
 fun StepCounterScreen(navController: NavHostController) {
     val context = LocalContext.current
-    var steps by remember { mutableStateOf(0f) }
-    var initialSteps by remember { mutableStateOf(-1f) }
+    var steps by remember { mutableFloatStateOf(0f) }
+    var initialSteps by remember { mutableFloatStateOf(-1f) }
 
     val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
     val stepSensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) }

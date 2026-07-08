@@ -71,7 +71,7 @@ fun SystemLabScreen(navController: NavHostController, title: String) {
             val availRam = memoryInfo.availMem.toFloat() / (1024 * 1024 * 1024)
             val usedRam = totalRam - availRam
             ramUsageProgress = usedRam / totalRam
-            ramUsageText = "%.1f / %.1f GB".format(usedRam, totalRam)
+            ramUsageText = String.format(java.util.Locale.getDefault(), "%.1f / %.1f GB", usedRam, totalRam)
 
             // Network Info
             val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

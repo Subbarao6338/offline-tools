@@ -31,7 +31,74 @@ fun ElectronicsToolScreen(navController: NavHostController, title: String) {
             when (title) {
                 "Ohm's Law" -> OhmsLawCalculator()
                 "Circuit Calc" -> CircuitPowerCalculator()
+                "Smart Hub" -> SmartHubCalculator()
                 else -> Text("Utility for $title")
+            }
+        }
+    }
+}
+
+@Composable
+fun SmartHubCalculator() {
+    var deviceCount by remember { mutableStateOf("5") }
+    var avgWattage by remember { mutableStateOf("10") } // Watts
+    var hoursOn by remember { mutableStateOf("24") }
+    var electricityRate by remember { mutableStateOf("0.12") } // per kWh
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("Smart Home Energy Estimator", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = deviceCount,
+            onValueChange = { deviceCount = it },
+            label = { Text("Number of IoT Devices") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+        OutlinedTextField(
+            value = avgWattage,
+            onValueChange = { avgWattage = it },
+            label = { Text("Avg. Wattage per Device (W)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+        OutlinedTextField(
+            value = hoursOn,
+            onValueChange = { hoursOn = it },
+            label = { Text("Hours Active per Day") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+        OutlinedTextField(
+            value = electricityRate,
+            onValueChange = { electricityRate = it },
+            label = { Text("Electricity Rate ($/kWh)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val count = deviceCount.toIntOrNull() ?: 0
+        val watts = avgWattage.toDoubleOrNull() ?: 0.0
+        val hours = hoursOn.toDoubleOrNull() ?: 0.0
+        val rate = electricityRate.toDoubleOrNull() ?: 0.0
+
+        val dailyKwh = (count * watts * hours) / 1000.0
+        val dailyCost = dailyKwh * rate
+        val monthlyCost = dailyCost * 30
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Energy Consumption Summary:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Daily Consumption: ${"%.3f".format(dailyKwh)} kWh")
+                Text("Daily Cost: $${"%.4f".format(dailyCost)}")
+                Text("Estimated Monthly Cost: $${"%.2f".format(monthlyCost)}", fontWeight = FontWeight.Bold)
             }
         }
     }

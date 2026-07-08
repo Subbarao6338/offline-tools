@@ -48,6 +48,8 @@ fun DeviceScreen(navController: NavHostController) {
         "Device" to Build.DEVICE,
         "Board" to Build.BOARD,
         "Hardware" to Build.HARDWARE,
+        "CPU Architecture" to (System.getProperty("os.arch") ?: "Unknown"),
+        "Kernel Version" to (System.getProperty("os.version") ?: "Unknown"),
         "Brand" to Build.BRAND,
         "Android Version" to Build.VERSION.RELEASE,
         "SDK Level" to Build.VERSION.SDK_INT.toString(),
