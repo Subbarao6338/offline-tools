@@ -208,11 +208,12 @@ private suspend fun performFaceSwap(source: Bitmap, target: Bitmap): Bitmap? = w
         )
 
         val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        maskPaint.maskFilter = BlurMaskFilter(20f, BlurMaskFilter.Blur.NORMAL)
         canvas.drawOval(
-            targetRect.left.toFloat(),
-            targetRect.top.toFloat(),
-            targetRect.right.toFloat(),
-            targetRect.bottom.toFloat(),
+            targetRect.left.toFloat() + 10f,
+            targetRect.top.toFloat() + 10f,
+            targetRect.right.toFloat() - 10f,
+            targetRect.bottom.toFloat() - 10f,
             maskPaint
         )
 
