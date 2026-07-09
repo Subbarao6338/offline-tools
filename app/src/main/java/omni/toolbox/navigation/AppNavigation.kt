@@ -364,11 +364,12 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         route == "image_bg_remover" || route == "image_ai_tools" -> ImageAIScreen(navController, tool.name)
 
         // --- Lifestyle Screens ---
-        route == "size_fit_group" -> SizeFitGuideScreen(navController)
-        route == "clothing_sizes" -> SizeFitGuideScreen(navController, 0)
-        route == "shoe_sizes" -> SizeFitGuideScreen(navController, 1)
-        route == "ring_sizes" -> SizeFitGuideScreen(navController, 2)
-        listOf("bra_calculator", "body_measurements").contains(route) -> SizeFitGuideScreen(navController, 3)
+        route == "size_fit_group" -> SizeGuideScreen(navController)
+        route == "clothing_sizes" -> SizeGuideScreen(navController, initialMainTab = 0)
+        route == "shoe_sizes" -> SizeGuideScreen(navController, initialMainTab = 3)
+        route == "ring_sizes" -> SizeGuideScreen(navController, initialMainTab = 4, initialSubTab = 0)
+        route == "bra_calculator" -> SizeGuideScreen(navController, initialMainTab = 7, initialSubTab = 0)
+        route == "body_measurements" -> SizeGuideScreen(navController, initialMainTab = 6)
 
         // --- 2. Shared Multi-Category Screens ---
         listOf("matrix_calc", "eq_solver", "fraction_calc", "truth_table", "binary_calc", "stats").contains(route) -> MathToolScreen(navController, tool.name)

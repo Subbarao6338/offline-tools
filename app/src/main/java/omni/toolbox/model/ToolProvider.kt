@@ -297,8 +297,8 @@ object ToolProvider {
             )),
 
         // --- LIFESTYLE ---
-        Tool("Size & Fit Guide", Icons.Default.Straighten, "size_fit_group", "Lifestyle", Color(0xFF8BC34A),
-            description = "International size charts and fit calculators.",
+        Tool("Fashion & Size Hub", Icons.Default.Checkroom, "size_fit_group", "Lifestyle", Color(0xFFE91E63),
+            description = "Explore global fashion styles, regional size guides, and cultural heritage.",
             subToolRoutes = listOf(
                 "clothing_sizes", "shoe_sizes", "ring_sizes", "bra_calculator", "body_measurements"
             )),
@@ -483,7 +483,7 @@ object ToolProvider {
         Tool("Ohm's Law", Icons.Default.ElectricalServices, "ohms_law", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Panchangam", Icons.Default.CalendarMonth, "panchangam", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Zodiac Finder", Icons.Default.AutoAwesome, "zodiac", "Utilities", isVisibleOnHome = false, isSubTool = true),
-        Tool("Fashion Size Guide", Icons.Default.Straighten, "size_guide", "Utilities", isVisibleOnHome = false, isSubTool = true),
+        Tool("Fashion & Size Hub", Icons.Default.Checkroom, "size_guide", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("PCB Trace Width", Icons.Default.Straighten, "pcb_trace", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Pomodoro", Icons.Default.HourglassEmpty, "pomodoro", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Protractor", Icons.Default.Architecture, "protractor", "Utilities", isVisibleOnHome = false, isSubTool = true),
