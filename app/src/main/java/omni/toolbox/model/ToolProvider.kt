@@ -296,6 +296,13 @@ object ToolProvider {
                 "car_maintenance", "fuel", "fuel_consumption", "plant_care", "recipe_scaler", "speedometer"
             )),
 
+        // --- LIFESTYLE ---
+        Tool("Size & Fit Guide", Icons.Default.Straighten, "size_fit_group", "Lifestyle", Color(0xFF8BC34A),
+            description = "International size charts and fit calculators.",
+            subToolRoutes = listOf(
+                "clothing_sizes", "shoe_sizes", "ring_sizes", "bra_calculator", "body_measurements"
+            )),
+
         // --- SOCIAL ---
         Tool("Social Presence", Icons.Default.Share, "social_media_group", "Social", Color(0xFFE91E63),
             description = "Manage your social profiles.",
@@ -767,6 +774,13 @@ object ToolProvider {
         Tool("Plant Care", Icons.Default.Eco, "plant_care", "DIY", isVisibleOnHome = false, isSubTool = true),
         Tool("Recipe Scaler", Icons.Default.Scale, "recipe_scaler", "DIY", isVisibleOnHome = false, isSubTool = true),
         Tool("Speedometer", Icons.Default.Speed, "speedometer", "DIY", isVisibleOnHome = false, isSubTool = true),
+
+        // --- LIFESTYLE SUB-TOOLS ---
+        Tool("Clothing Sizes", Icons.Default.Checkroom, "clothing_sizes", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Shoe Sizes", Icons.Default.DirectionsRun, "shoe_sizes", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Ring Sizes", Icons.Default.RadioButtonUnchecked, "ring_sizes", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Bra Calculator", Icons.Default.Calculate, "bra_calculator", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Body Measurements", Icons.Default.Straighten, "body_measurements", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
 
         // --- SOCIAL SUB-TOOLS ---
         Tool("Bio Linker", Icons.Default.Link, "bio_linker", "Social", isVisibleOnHome = false, isSubTool = true),

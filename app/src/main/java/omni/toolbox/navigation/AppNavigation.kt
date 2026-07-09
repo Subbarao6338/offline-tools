@@ -362,6 +362,13 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         listOf("image_color_picker", "image_palette", "color_palette_group", "color_conv_pro", "color_harmonies", "color_info", "color_mixing", "color_shading", "edit_palette", "generate_palette", "material_you_palette", "image_histogram").contains(route) -> ColorToolsScreen(navController)
         route == "image_bg_remover" || route == "image_ai_tools" -> ImageAIScreen(navController, tool.name)
 
+        // --- Lifestyle Screens ---
+        route == "size_fit_group" -> SizeFitGuideScreen(navController)
+        route == "clothing_sizes" -> SizeFitGuideScreen(navController, 0)
+        route == "shoe_sizes" -> SizeFitGuideScreen(navController, 1)
+        route == "ring_sizes" -> SizeFitGuideScreen(navController, 2)
+        listOf("bra_calculator", "body_measurements").contains(route) -> SizeFitGuideScreen(navController, 3)
+
         // --- 2. Shared Multi-Category Screens ---
         listOf("matrix_calc", "eq_solver", "fraction_calc", "truth_table", "binary_calc", "stats").contains(route) -> MathToolScreen(navController, tool.name)
         listOf("antenna_calc", "filter_design", "logic_gates", "pcb_trace", "resistor_code", "signal_gen_pro", "force_calc").contains(route) -> EngineeringToolScreen(navController, tool.name)
