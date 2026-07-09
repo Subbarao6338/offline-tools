@@ -27,11 +27,47 @@ fun SurvivalGuideScreen(navController: NavHostController) {
     val chapters = listOf(
         SurvivalChapter("Overview", Icons.Default.Info, "General survival principles and safety rules."),
         SurvivalChapter("Shelter", Icons.Default.Home, "How to build various types of shelters using natural materials."),
-        SurvivalChapter("Fire", Icons.Default.LocalFireDepartment, "Techniques for starting and maintaining a fire in different conditions."),
-        SurvivalChapter("Water", Icons.Default.WaterDrop, "Finding, collecting, and purifying water in the wild."),
-        SurvivalChapter("Food", Icons.Default.Restaurant, "Identifying edible plants and basic trapping/fishing techniques."),
+        SurvivalChapter("Fire", Icons.Default.LocalFireDepartment, """fire, flame, light, heat, warm, burn
+<!-- S: Build and maintain a fire.
+
+Knowing how to make fire can help you stay warm, purify water, and cook food.
+
+**This chapter is for informational purposes only and does not replace professional advice; use at your own risk and ensure compliance with local laws.**
+
+## Be prepared
+ prepare, gear, knowledge, skill, starter, matches, lighter, steel, ferro, ferrocerium, tinder
+<!-- S: Bring a firestarter. Learn how to build and maintain a fire.
+
+### Gear
+..."""),
+        SurvivalChapter("Water", Icons.Default.WaterDrop, """water, thirst, thirsty, drink
+<!-- S: Stay hydrated and purify water.
+
+You can only survive at most a few days without water. Knowing how to find and purify water is vital in a survival situation.
+
+**This chapter is for informational purposes only and does not replace professional advice; use at your own risk and ensure compliance with local laws.**
+
+## Be prepared
+ prepare, gear, knowledge, skill, container, filter, sheet, tarp, tablet
+<!-- S: Bring extra water, a water container, and purifi..."""),
+        SurvivalChapter("Food", Icons.Default.Restaurant, """food, eat, meal, hunger, hungry
+<!-- S: Ration food and forage when there's none left.
+
+Food gives you energy but is a low priority in most survival situations since you can go weeks without it. If you haven't eaten in a while, focus on foraging for bugs, shellfish, and aggregate berries.
+
+**This chapter is for informational purposes only and does not replace professional advice; use at your own risk and ensure compliance with local laws.**
+
+## Be prepared
+ prepare, gear, knowledge, skill, nut..."""),
         SurvivalChapter("Navigation", Icons.Default.Explore, "Using natural signs and simple tools for navigation."),
-        SurvivalChapter("Medical", Icons.Default.MedicalServices, "Basic first aid and natural remedies for common injuries."),
+        SurvivalChapter("Medical", Icons.Default.MedicalServices, """medicine, medical, heal, health, injury, sick, ill, first-aid, symptom, treat, prevent, help
+<!-- S: Calm down and apply first aid.
+
+This chapter covers basic medical knowledge and techniques for common injuries and illnesses in the wilderness.
+
+**This chapter is for informational purposes only and does not replace professional advice, diagnosis, or treatment; use at your own risk, ensure compliance with local laws, and consult qualified healthcare providers whenever possible.**
+
+## Be prepar..."""),
         SurvivalChapter("Weather", Icons.Default.Cloud, "Predicting weather changes using environmental observations.")
     )
 

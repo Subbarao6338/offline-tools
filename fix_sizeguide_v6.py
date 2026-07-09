@@ -1,4 +1,37 @@
-package omni.toolbox.model
+import re
+
+with open('app/src/main/java/omni/toolbox/model/SizeGuideData.kt', 'r') as f:
+    content = f.read()
+
+# Replace variables with correctly formatted lists
+def wrap_list(var_name, data_regex):
+    global content
+    match = re.search(f'val {var_name} = listOf\((.*?)\)\n\s+val', content, re.DOTALL)
+    if not match:
+        # Try finding until end of object
+        match = re.search(f'val {var_name} = listOf\((.*?)\)\n}}', content, re.DOTALL)
+
+    if match:
+        inner = match.group(1).strip()
+        # Remove trailing commas and extra parens
+        if inner.endswith(')'):
+             inner = inner[:-1].strip()
+        if inner.endswith(')'):
+             inner = inner[:-1].strip()
+
+        # Re-wrap
+        content = content.replace(match.group(0), f'val {var_name} = listOf(\n        {inner}\n    )\n\n    val' if 'val' in match.group(0) else f'val {var_name} = listOf(\n        {inner}\n    )\n}}')
+
+# This is too complex to regex perfectly given the nested structures.
+# Let's just do a simple replacement for the problematic endings.
+
+content = content.replace('            )\n    )\n\n    val', '            )\n        )\n    )\n\n    val')
+content = content.replace('            )\n    )\n\n}', '            )\n        )\n    )\n}')
+
+# Wait, looking at the previous cat output, some were closed with just one paren
+# Let's just manually fix the whole file content in a stable way.
+
+new_content = """package omni.toolbox.model
 
 data class SizeRow(val values: List<String>)
 data class SizeChart(val title: String, val columns: List<String>, val rows: List<SizeRow>)
@@ -201,3 +234,7 @@ object SizeGuideData {
         )
     )
 }
+"""
+
+with open('app/src/main/java/omni/toolbox/model/SizeGuideData.kt', 'w') as f:
+    f.write(new_content)

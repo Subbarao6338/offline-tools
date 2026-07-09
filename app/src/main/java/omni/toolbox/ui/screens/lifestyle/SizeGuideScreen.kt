@@ -25,7 +25,7 @@ import omni.toolbox.ui.components.ToolScreen
 @Composable
 fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, initialSubTab: Int = 0) {
     var selectedMainTab by remember { mutableIntStateOf(initialMainTab) }
-    val mainTabs = listOf("Women", "Men", "Kids", "Footwear", "Accessories", "Indian", "World", "Tribal", "Modern", "Global", "Innerwear")
+    val mainTabs = listOf("Women", "Men", "Kids", "Footwear", "Accessories", "Indian", "World", "Tribal", "Modern", "Global", "Innerwear", "Materials")
 
     val currentCategories = when (selectedMainTab) {
         0 -> SizeGuideData.womenCategories
@@ -36,9 +36,10 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
         5 -> SizeGuideData.indianCategories
         6 -> SizeGuideData.worldCategories
         7 -> SizeGuideData.tribalCategories
-        8 -> SizeGuideData.modernCategories
+                8 -> SizeGuideData.modernCategories
         9 -> SizeGuideData.globalConversion
-        else -> SizeGuideData.innerwearCategories
+        10 -> SizeGuideData.innerwearCategories
+        else -> SizeGuideData.materialCategories
     }
 
     var selectedSubCategoryIndex by remember(selectedMainTab) {
