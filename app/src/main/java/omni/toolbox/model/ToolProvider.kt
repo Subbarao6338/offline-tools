@@ -300,7 +300,10 @@ object ToolProvider {
         Tool("Fashion & Size Hub", Icons.Default.Checkroom, "size_fit_group", "Lifestyle", Color(0xFFE91E63),
             description = "Explore global fashion styles, regional size guides, and cultural heritage.",
             subToolRoutes = listOf(
-                "clothing_sizes", "shoe_sizes", "ring_sizes", "bra_calculator", "body_measurements"
+                "clothing_sizes", "shoe_sizes", "ring_sizes", "bra_calculator", "body_measurements",
+                "dress_guide", "clothes_guide", "headwear_guide", "footwear_guide", "accessories_guide",
+                "fashion_guide", "traditional_fashion", "modern_fashion", "tribal_fashion", "indian_fashion",
+                "world_fashion", "all_countries_sizes", "topwear_guide", "bottomwear_guide", "waistwear_guide"
             )),
 
         // --- SOCIAL ---
@@ -782,6 +785,21 @@ object ToolProvider {
         Tool("Ring Sizes", Icons.Default.RadioButtonUnchecked, "ring_sizes", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Bra Calculator", Icons.Default.Calculate, "bra_calculator", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Body Measurements", Icons.Default.Straighten, "body_measurements", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Dress Guide", Icons.Default.Checkroom, "dress_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Clothes Guide", Icons.Default.Checkroom, "clothes_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Headwear Guide", Icons.Default.Checkroom, "headwear_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Footwear Guide", Icons.Default.DirectionsRun, "footwear_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Accessories Guide", Icons.Default.Watch, "accessories_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Fashion Guide", Icons.Default.AutoAwesome, "fashion_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Traditional Fashion", Icons.Default.HistoryEdu, "traditional_fashion", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Modern Fashion", Icons.Default.Checkroom, "modern_fashion", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Tribal Fashion", Icons.Default.Diversity3, "tribal_fashion", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Indian Fashion", Icons.Default.Festival, "indian_fashion", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("World Fashion", Icons.Default.Public, "world_fashion", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("All Countries Sizes", Icons.Default.Language, "all_countries_sizes", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Topwear Guide", Icons.Default.Checkroom, "topwear_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Bottomwear Guide", Icons.Default.Checkroom, "bottomwear_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Waistwear Guide", Icons.Default.Checkroom, "waistwear_guide", "Lifestyle", isVisibleOnHome = false, isSubTool = true),
 
         // --- SOCIAL SUB-TOOLS ---
         Tool("Bio Linker", Icons.Default.Link, "bio_linker", "Social", isVisibleOnHome = false, isSubTool = true),
