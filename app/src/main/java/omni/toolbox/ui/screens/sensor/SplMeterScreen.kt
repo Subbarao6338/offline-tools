@@ -40,13 +40,13 @@ fun SplMeterScreen(navController: NavHostController) {
                         if (read > 0) {
                             var sum = 0.0
                             for (i in 0 until read) {
-                                sum += buffer[i] * buffer[i]
+                                sum += buffer[i].toDouble() * buffer[i].toDouble()
                             }
-                            val amplitude = Math.sqrt(sum / read)
-                            // Convert amplitude to dB (approximate)
-                            // reference value for 0dB can vary, 1.0 is a common placeholder for digital full scale
-                            // but here we use a common heuristic for Android mics
-                            val db = if (amplitude > 0) 20 * log10(amplitude / 32767.0) + 90 else 0.0
+                            val rms = Math.sqrt(sum / read)
+                            // Convert RMS to dB (approximate)
+                            // 32767.0 is the max value for 16-bit PCM
+                            // +90 is a common offset for mobile device microphones to match environmental SPL
+                            val db = if (rms > 0) 20 * log10(rms / 32767.0) + 90 else 0.0
                             withContext(Dispatchers.Main) {
                                 dbLevel = db.toFloat().coerceIn(0f, 120f)
                             }
