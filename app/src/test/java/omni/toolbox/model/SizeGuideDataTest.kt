@@ -8,7 +8,10 @@ class SizeGuideDataTest {
     fun testSizeGuideDataNotEmpty() {
         assertTrue(SizeGuideData.womenCategories.isNotEmpty())
         assertTrue(SizeGuideData.menCategories.isNotEmpty())
-        assertTrue(SizeGuideData.kidsCategories.isNotEmpty())
+        assertTrue(SizeGuideData.footwearCategories.isNotEmpty())
+        assertTrue(SizeGuideData.accessoriesCategories.isNotEmpty())
+        assertTrue(SizeGuideData.culturalCategories.isNotEmpty())
+        assertTrue(SizeGuideData.styleGuides.isNotEmpty())
         assertTrue(SizeGuideData.innerwearCategories.isNotEmpty())
     }
 
@@ -16,7 +19,10 @@ class SizeGuideDataTest {
     fun testSizeChartConsistency() {
         val allCharts = SizeGuideData.womenCategories +
                          SizeGuideData.menCategories +
-                         SizeGuideData.kidsCategories +
+                         SizeGuideData.footwearCategories +
+                         SizeGuideData.accessoriesCategories +
+                         SizeGuideData.culturalCategories +
+                         SizeGuideData.styleGuides +
                          SizeGuideData.innerwearCategories
 
         for (chart in allCharts) {
