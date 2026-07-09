@@ -53,6 +53,15 @@ import omni.toolbox.ui.screens.engineering.*
 import omni.toolbox.ui.screens.photography.*
 import omni.toolbox.ui.screens.music.*
 import omni.toolbox.ui.screens.outdoor.*
+import omni.toolbox.ui.screens.outdoor.CliffHeightScreen
+import omni.toolbox.ui.screens.outdoor.TriangulationScreen
+import omni.toolbox.ui.screens.outdoor.WaterPurificationScreen
+import omni.toolbox.ui.screens.science.BallisticsScreen
+import omni.toolbox.ui.screens.audio.WhistleScreen
+import omni.toolbox.ui.screens.audio.WhiteNoiseScreen
+import omni.toolbox.ui.screens.outdoor.LightningScreen
+import omni.toolbox.ui.screens.outdoor.SolarPanelScreen
+import omni.toolbox.ui.screens.sensor.ClinometerScreen
 import omni.toolbox.ui.screens.environment.*
 import omni.toolbox.ui.screens.automotive.*
 import omni.toolbox.ui.screens.social.*
@@ -235,6 +244,15 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         listOf("star_map", "constellations", "solar_system", "planet_finder").contains(route) -> StarMapScreen(navController)
         route == "prime" -> PrimeCheckerScreen(navController)
         route == "unit_circle" -> UnitCircleScreen(navController)
+        route == "clinometer" -> ClinometerScreen(navController)
+        route == "solar_panel" -> SolarPanelScreen(navController)
+        route == "lightning" -> LightningScreen(navController)
+        route == "white_noise" -> WhiteNoiseScreen(navController)
+        route == "whistle" -> WhistleScreen(navController)
+        route == "water_purify" -> WaterPurificationScreen(navController)
+        route == "triangulate" -> TriangulationScreen(navController)
+        route == "cliff_height" -> CliffHeightScreen(navController)
+        route == "ballistics" -> BallisticsScreen(navController)
         route == "dna_viz" -> DataVisualizerScreen(navController)
 
         route == "flashlight" -> FlashlightScreen(navController)
@@ -258,6 +276,7 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         route == "sci_calc" -> ScientificCalculatorScreen(navController)
         route == "tiles_widgets" -> TilesAndWidgetsScreen(navController)
         route == "panchangam" -> TeluguPanchangamScreen(navController, omniViewModel)
+        route == "fashion_materials" -> SizeGuideScreen(navController, initialMainTab = 11)
         route == "size_guide" -> SizeGuideScreen(navController)
         route == "ruler" -> RulerScreen(navController)
         route == "protractor" -> ProtractorScreen(navController)
