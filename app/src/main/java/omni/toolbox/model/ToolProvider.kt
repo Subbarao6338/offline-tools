@@ -119,7 +119,7 @@ object ToolProvider {
             description = "Everyday utility tools.",
             subToolRoutes = listOf(
                 "clock", "date_calc", "flashlight", "protractor", "qr_gen", "qr_scanner", "ruler",
-                "stopwatch", "tiles_widgets", "vibration", "wifi_qr", "panchangam", "zodiac"
+                "stopwatch", "tiles_widgets", "vibration", "wifi_qr", "panchangam", "zodiac", "size_guide"
             )),
         Tool("Productivity", Icons.Default.Task, "prod_group", "Utilities", Color(0xFF3F51B5),
             description = "Stay organized and focused.",
@@ -476,6 +476,7 @@ object ToolProvider {
         Tool("Ohm's Law", Icons.Default.ElectricalServices, "ohms_law", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Panchangam", Icons.Default.CalendarMonth, "panchangam", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Zodiac Finder", Icons.Default.AutoAwesome, "zodiac", "Utilities", isVisibleOnHome = false, isSubTool = true),
+        Tool("Fashion Size Guide", Icons.Default.Straighten, "size_guide", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("PCB Trace Width", Icons.Default.Straighten, "pcb_trace", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Pomodoro", Icons.Default.HourglassEmpty, "pomodoro", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("Protractor", Icons.Default.Architecture, "protractor", "Utilities", isVisibleOnHome = false, isSubTool = true),
