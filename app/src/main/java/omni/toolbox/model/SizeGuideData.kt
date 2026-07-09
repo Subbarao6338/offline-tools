@@ -7,42 +7,42 @@ object SizeGuideData {
     val womenCategories = listOf(
         SizeChart(
             "Dresses & Suits",
-            listOf("US", "UK", "EU", "IT", "FR", "JP"),
+            listOf("US", "UK", "EU", "IT", "FR", "JP", "AU", "CN"),
             listOf(
-                SizeRow(listOf("0", "4", "32", "36", "34", "5")),
-                SizeRow(listOf("2", "6", "34", "38", "36", "7")),
-                SizeRow(listOf("4", "8", "36", "40", "38", "9")),
-                SizeRow(listOf("6", "10", "38", "42", "40", "11")),
-                SizeRow(listOf("8", "12", "40", "44", "42", "13")),
-                SizeRow(listOf("10", "14", "42", "46", "44", "15")),
-                SizeRow(listOf("12", "16", "44", "48", "46", "17")),
-                SizeRow(listOf("14", "18", "46", "50", "48", "19")),
-                SizeRow(listOf("16", "20", "48", "52", "50", "21"))
+                SizeRow(listOf("0", "4", "32", "36", "34", "5", "4", "XXXS")),
+                SizeRow(listOf("2", "6", "34", "38", "36", "7", "6", "XXS")),
+                SizeRow(listOf("4", "8", "36", "40", "38", "9", "8", "XS")),
+                SizeRow(listOf("6", "10", "38", "42", "40", "11", "10", "S")),
+                SizeRow(listOf("8", "12", "40", "44", "42", "13", "12", "M")),
+                SizeRow(listOf("10", "14", "42", "46", "44", "15", "14", "L")),
+                SizeRow(listOf("12", "16", "44", "48", "46", "17", "16", "XL")),
+                SizeRow(listOf("14", "18", "46", "50", "48", "19", "18", "XXL")),
+                SizeRow(listOf("16", "20", "48", "52", "50", "21", "20", "XXXL"))
             )
         ),
         SizeChart(
             "Tops & Sweaters",
-            listOf("US", "UK", "EU", "IT", "JP"),
+            listOf("US", "UK", "EU", "IT", "JP", "AU", "KR"),
             listOf(
-                SizeRow(listOf("XXS", "2", "30", "34", "3")),
-                SizeRow(listOf("XS", "4", "32", "36", "5")),
-                SizeRow(listOf("S", "6", "34", "38", "7")),
-                SizeRow(listOf("M", "8", "36", "40", "9")),
-                SizeRow(listOf("L", "10", "38", "42", "11")),
-                SizeRow(listOf("XL", "12", "40", "44", "13")),
-                SizeRow(listOf("XXL", "14", "42", "46", "15"))
+                SizeRow(listOf("XXS", "2", "30", "34", "3", "2", "33/44")),
+                SizeRow(listOf("XS", "4", "32", "36", "5", "4", "44/55")),
+                SizeRow(listOf("S", "6", "34", "38", "7", "6", "55/66")),
+                SizeRow(listOf("M", "8", "36", "40", "9", "8", "66/77")),
+                SizeRow(listOf("L", "10", "38", "42", "11", "10", "77/88")),
+                SizeRow(listOf("XL", "12", "40", "44", "13", "12", "88/99")),
+                SizeRow(listOf("XXL", "14", "42", "46", "15", "14", "99+"))
             )
         ),
         SizeChart(
             "Plus Size",
-            listOf("US", "UK", "EU", "IT", "JP"),
+            listOf("US", "UK", "EU", "IT", "JP", "AU"),
             listOf(
-                SizeRow(listOf("16W", "20", "48", "52", "21")),
-                SizeRow(listOf("18W", "22", "50", "54", "23")),
-                SizeRow(listOf("20W", "24", "52", "56", "25")),
-                SizeRow(listOf("22W", "26", "54", "58", "27")),
-                SizeRow(listOf("24W", "28", "56", "60", "29")),
-                SizeRow(listOf("26W", "30", "58", "62", "31"))
+                SizeRow(listOf("16W", "20", "48", "52", "21", "20")),
+                SizeRow(listOf("18W", "22", "50", "54", "23", "22")),
+                SizeRow(listOf("20W", "24", "52", "56", "25", "24")),
+                SizeRow(listOf("22W", "26", "54", "58", "27", "26")),
+                SizeRow(listOf("24W", "28", "56", "60", "29", "28")),
+                SizeRow(listOf("26W", "30", "58", "62", "31", "30"))
             )
         ),
         SizeChart(
@@ -60,15 +60,15 @@ object SizeGuideData {
         ),
         SizeChart(
             "Pants & Skirts",
-            listOf("US", "UK", "EU", "IT", "JP"),
+            listOf("US", "UK", "EU", "IT", "JP", "AU"),
             listOf(
-                SizeRow(listOf("0", "4", "32", "36", "5")),
-                SizeRow(listOf("2", "6", "34", "38", "7")),
-                SizeRow(listOf("4", "8", "36", "40", "9")),
-                SizeRow(listOf("6", "10", "38", "42", "11")),
-                SizeRow(listOf("8", "12", "40", "44", "13")),
-                SizeRow(listOf("10", "14", "42", "46", "15")),
-                SizeRow(listOf("12", "16", "44", "48", "17"))
+                SizeRow(listOf("0", "4", "32", "36", "5", "4")),
+                SizeRow(listOf("2", "6", "34", "38", "7", "6")),
+                SizeRow(listOf("4", "8", "36", "40", "9", "8")),
+                SizeRow(listOf("6", "10", "38", "42", "11", "10")),
+                SizeRow(listOf("8", "12", "40", "44", "13", "12")),
+                SizeRow(listOf("10", "14", "42", "46", "15", "14")),
+                SizeRow(listOf("12", "16", "44", "48", "17", "16"))
             )
         ),
         SizeChart(
@@ -91,15 +91,15 @@ object SizeGuideData {
     val menCategories = listOf(
         SizeChart(
             "Suits & Coats",
-            listOf("US/UK", "EU/IT", "JP", "International"),
+            listOf("US/UK", "EU/IT", "JP", "International", "AU", "KR"),
             listOf(
-                SizeRow(listOf("34", "44", "S", "XS")),
-                SizeRow(listOf("36", "46", "M", "S")),
-                SizeRow(listOf("38", "48", "L", "M")),
-                SizeRow(listOf("40", "50", "LL", "L")),
-                SizeRow(listOf("42", "52", "3L", "XL")),
-                SizeRow(listOf("44", "54", "4L", "XXL")),
-                SizeRow(listOf("46", "56", "5L", "3XL"))
+                SizeRow(listOf("34", "44", "S", "XS", "34", "90")),
+                SizeRow(listOf("36", "46", "M", "S", "36", "95")),
+                SizeRow(listOf("38", "48", "L", "M", "38", "100")),
+                SizeRow(listOf("40", "50", "LL", "L", "40", "105")),
+                SizeRow(listOf("42", "52", "3L", "XL", "42", "110")),
+                SizeRow(listOf("44", "54", "4L", "XXL", "44", "115")),
+                SizeRow(listOf("46", "56", "5L", "3XL", "46", "120"))
             )
         ),
         SizeChart(
@@ -117,43 +117,43 @@ object SizeGuideData {
         ),
         SizeChart(
             "Dress Shirts",
-            listOf("US/UK (in)", "EU/IT (cm)", "JP"),
+            listOf("US/UK (in)", "EU/IT (cm)", "JP", "AU"),
             listOf(
-                SizeRow(listOf("14", "36", "S")),
-                SizeRow(listOf("14.5", "37", "S")),
-                SizeRow(listOf("15", "38", "M")),
-                SizeRow(listOf("15.5", "39", "M")),
-                SizeRow(listOf("16", "41", "L")),
-                SizeRow(listOf("16.5", "42", "L")),
-                SizeRow(listOf("17", "43", "XL")),
-                SizeRow(listOf("17.5", "44", "XL")),
-                SizeRow(listOf("18", "45", "XXL"))
+                SizeRow(listOf("14", "36", "S", "36")),
+                SizeRow(listOf("14.5", "37", "S", "37")),
+                SizeRow(listOf("15", "38", "M", "38")),
+                SizeRow(listOf("15.5", "39", "M", "39")),
+                SizeRow(listOf("16", "41", "L", "41")),
+                SizeRow(listOf("16.5", "42", "L", "42")),
+                SizeRow(listOf("17", "43", "XL", "43")),
+                SizeRow(listOf("17.5", "44", "XL", "44")),
+                SizeRow(listOf("18", "45", "XXL", "45"))
             )
         ),
         SizeChart(
             "Casual Shirts & T-Shirts",
-            listOf("Size", "Chest (in)", "Chest (cm)"),
+            listOf("Size", "Chest (in)", "Chest (cm)", "KR"),
             listOf(
-                SizeRow(listOf("XS", "32-34", "81-86")),
-                SizeRow(listOf("S", "35-37", "89-94")),
-                SizeRow(listOf("M", "38-40", "96-102")),
-                SizeRow(listOf("L", "41-43", "104-109")),
-                SizeRow(listOf("XL", "44-46", "112-117")),
-                SizeRow(listOf("XXL", "47-49", "119-124")),
-                SizeRow(listOf("3XL", "50-52", "127-132"))
+                SizeRow(listOf("XS", "32-34", "81-86", "85")),
+                SizeRow(listOf("S", "35-37", "89-94", "90")),
+                SizeRow(listOf("M", "38-40", "96-102", "95")),
+                SizeRow(listOf("L", "41-43", "104-109", "100")),
+                SizeRow(listOf("XL", "44-46", "112-117", "105")),
+                SizeRow(listOf("XXL", "47-49", "119-124", "110")),
+                SizeRow(listOf("3XL", "50-52", "127-132", "115"))
             )
         ),
         SizeChart(
             "Pants & Jeans (Waist)",
-            listOf("US/UK (in)", "EU (cm)", "IT", "FR"),
+            listOf("US/UK (in)", "EU (cm)", "IT", "FR", "AU"),
             listOf(
-                SizeRow(listOf("28", "71", "44", "36")),
-                SizeRow(listOf("30", "76", "46", "38")),
-                SizeRow(listOf("32", "81", "48", "40")),
-                SizeRow(listOf("34", "86", "50", "42")),
-                SizeRow(listOf("36", "91", "52", "44")),
-                SizeRow(listOf("38", "96", "54", "46")),
-                SizeRow(listOf("40", "101", "56", "48"))
+                SizeRow(listOf("28", "71", "44", "36", "72R")),
+                SizeRow(listOf("30", "76", "46", "38", "77R")),
+                SizeRow(listOf("32", "81", "48", "40", "82R")),
+                SizeRow(listOf("34", "86", "50", "42", "87R")),
+                SizeRow(listOf("36", "91", "52", "44", "92R")),
+                SizeRow(listOf("38", "96", "54", "46", "97R")),
+                SizeRow(listOf("40", "101", "56", "48", "102R"))
             )
         )
     )
@@ -161,36 +161,36 @@ object SizeGuideData {
     val kidsCategories = listOf(
         SizeChart(
             "Baby (0-24 Months)",
-            listOf("Age", "Height (in)", "Weight (lb)", "EU (cm)"),
+            listOf("Age", "Height (in)", "Weight (lb)", "EU (cm)", "JP"),
             listOf(
-                SizeRow(listOf("0-3m", "19-23", "7-12", "50-60")),
-                SizeRow(listOf("3-6m", "24-26", "13-17", "60-70")),
-                SizeRow(listOf("6-9m", "27-28", "18-21", "70-75")),
-                SizeRow(listOf("12m", "29-30", "22-25", "80")),
-                SizeRow(listOf("18m", "31-32", "26-29", "86")),
-                SizeRow(listOf("24m", "33-35", "30-33", "92"))
+                SizeRow(listOf("0-3m", "19-23", "7-12", "50-60", "50-60")),
+                SizeRow(listOf("3-6m", "24-26", "13-17", "60-70", "60-70")),
+                SizeRow(listOf("6-9m", "27-28", "18-21", "70-75", "70-75")),
+                SizeRow(listOf("12m", "29-30", "22-25", "80", "80")),
+                SizeRow(listOf("18m", "31-32", "26-29", "86", "80-90")),
+                SizeRow(listOf("24m", "33-35", "30-33", "92", "90"))
             )
         ),
         SizeChart(
             "Toddler (2T-5T)",
-            listOf("Size", "Age", "Height (in)", "Height (cm)"),
+            listOf("Size", "Age", "Height (in)", "Height (cm)", "AU"),
             listOf(
-                SizeRow(listOf("2T", "2y", "33-35", "84-89")),
-                SizeRow(listOf("3T", "3y", "36-38", "91-97")),
-                SizeRow(listOf("4T", "4y", "39-41", "99-104")),
-                SizeRow(listOf("5T", "5y", "42-44", "107-112"))
+                SizeRow(listOf("2T", "2y", "33-35", "84-89", "2")),
+                SizeRow(listOf("3T", "3y", "36-38", "91-97", "3")),
+                SizeRow(listOf("4T", "4y", "39-41", "99-104", "4")),
+                SizeRow(listOf("5T", "5y", "42-44", "107-112", "5"))
             )
         ),
         SizeChart(
             "Big Kids (6-14 Years)",
-            listOf("US Size", "Age", "Height (in)", "Height (cm)"),
+            listOf("US Size", "Age", "Height (in)", "Height (cm)", "UK/AU"),
             listOf(
-                SizeRow(listOf("6", "6y", "45-47", "114-119")),
-                SizeRow(listOf("7", "7y", "48-49", "122-124")),
-                SizeRow(listOf("8", "8y", "50-52", "127-132")),
-                SizeRow(listOf("10", "10y", "53-55", "135-140")),
-                SizeRow(listOf("12", "12y", "56-58", "142-147")),
-                SizeRow(listOf("14", "14y", "59-61", "150-155"))
+                SizeRow(listOf("6", "6y", "45-47", "114-119", "6")),
+                SizeRow(listOf("7", "7y", "48-49", "122-124", "7")),
+                SizeRow(listOf("8", "8y", "50-52", "127-132", "8")),
+                SizeRow(listOf("10", "10y", "53-55", "135-140", "10")),
+                SizeRow(listOf("12", "12y", "56-58", "142-147", "12")),
+                SizeRow(listOf("14", "14y", "59-61", "150-155", "14"))
             )
         )
     )
@@ -198,26 +198,26 @@ object SizeGuideData {
     val footwearCategories = listOf(
         SizeChart(
             "Women's Shoes",
-            listOf("US", "UK", "EU", "JP (cm)"),
+            listOf("US", "UK", "EU", "JP (cm)", "AU", "CN"),
             listOf(
-                SizeRow(listOf("5", "3", "35.5", "21")),
-                SizeRow(listOf("6", "4", "37", "22")),
-                SizeRow(listOf("7", "5", "38", "23")),
-                SizeRow(listOf("8", "6", "39", "24")),
-                SizeRow(listOf("9", "7", "40.5", "25")),
-                SizeRow(listOf("10", "8", "42", "26"))
+                SizeRow(listOf("5", "3", "35.5", "21", "5", "35")),
+                SizeRow(listOf("6", "4", "37", "22", "6", "36")),
+                SizeRow(listOf("7", "5", "38", "23", "7", "37")),
+                SizeRow(listOf("8", "6", "39", "24", "8", "38")),
+                SizeRow(listOf("9", "7", "40.5", "25", "9", "39")),
+                SizeRow(listOf("10", "8", "42", "26", "10", "40"))
             )
         ),
         SizeChart(
             "Men's Shoes",
-            listOf("US", "UK", "EU", "JP (cm)"),
+            listOf("US", "UK", "EU", "JP (cm)", "AU", "CN"),
             listOf(
-                SizeRow(listOf("7", "6", "40", "25")),
-                SizeRow(listOf("8", "7", "41", "26")),
-                SizeRow(listOf("9", "8", "42", "27")),
-                SizeRow(listOf("10", "9", "43", "28")),
-                SizeRow(listOf("11", "10", "44", "29")),
-                SizeRow(listOf("12", "11", "45", "30"))
+                SizeRow(listOf("7", "6", "40", "25", "7", "39")),
+                SizeRow(listOf("8", "7", "41", "26", "8", "40")),
+                SizeRow(listOf("9", "8", "42", "27", "9", "41")),
+                SizeRow(listOf("10", "9", "43", "28", "10", "42")),
+                SizeRow(listOf("11", "10", "44", "29", "11", "43")),
+                SizeRow(listOf("12", "11", "45", "30", "12", "44"))
             )
         ),
         SizeChart(
@@ -254,13 +254,13 @@ object SizeGuideData {
         ),
         SizeChart(
             "Hats & Caps",
-            listOf("Size", "Circ (in)", "Circ (cm)"),
+            listOf("Size", "Circ (in)", "Circ (cm)", "Fitted"),
             listOf(
-                SizeRow(listOf("S", "21 1/4 - 21 5/8", "54-55")),
-                SizeRow(listOf("M", "22 - 22 3/8", "56-57")),
-                SizeRow(listOf("L", "22 3/4 - 23 1/8", "58-59")),
-                SizeRow(listOf("XL", "23 1/2 - 23 7/8", "60-61")),
-                SizeRow(listOf("XXL", "24 1/4 - 24 5/8", "62-63"))
+                SizeRow(listOf("S", "21 1/4 - 21 5/8", "54-55", "6 3/4 - 6 7/8")),
+                SizeRow(listOf("M", "22 - 22 3/8", "56-57", "7 - 7 1/8")),
+                SizeRow(listOf("L", "22 3/4 - 23 1/8", "58-59", "7 1/4 - 7 3/8")),
+                SizeRow(listOf("XL", "23 1/2 - 23 7/8", "60-61", "7 1/2 - 7 5/8")),
+                SizeRow(listOf("XXL", "24 1/4 - 24 5/8", "62-63", "7 3/4 - 7 7/8"))
             )
         ),
         SizeChart(
@@ -286,7 +286,7 @@ object SizeGuideData {
         )
     )
 
-    val culturalCategories = listOf(
+    val indianCategories = listOf(
         SizeChart(
             "Traditional Indian (Women)",
             listOf("Style", "Length", "Description"),
@@ -294,7 +294,9 @@ object SizeGuideData {
                 SizeRow(listOf("Saree", "5.5 - 9 yards", "Unstitched drape, worn with blouse & petticoat.")),
                 SizeRow(listOf("Salwar Kameez", "Varies", "Tunic (Kameez) paired with trousers (Salwar).")),
                 SizeRow(listOf("Lehenga Choli", "Ankle Length", "Long skirt (Lehenga) with cropped blouse (Choli).")),
-                SizeRow(listOf("Anarkali", "Floor Length", "Frock-style top with slim fitted bottoms."))
+                SizeRow(listOf("Anarkali", "Floor Length", "Frock-style top with slim fitted bottoms.")),
+                SizeRow(listOf("Gharara", "Ankle Length", "Wide-legged trousers, ruched at the knee.")),
+                SizeRow(listOf("Pheran", "Knee Length", "Loose tunic worn in Kashmir, usually wool."))
             )
         ),
         SizeChart(
@@ -304,9 +306,14 @@ object SizeGuideData {
                 SizeRow(listOf("Kurta Pajama", "Casual/Formal", "Knee-length tunic with loose trousers.")),
                 SizeRow(listOf("Sherwani", "Wedding/Gala", "Long coat-like garment, heavy embroidery.")),
                 SizeRow(listOf("Dhoti", "Ceremonial", "Unstitched rectangular cloth wrapped around waist.")),
-                SizeRow(listOf("Nehru Jacket", "Semi-Formal", "Sleeveless waistcoat with mandarin collar."))
+                SizeRow(listOf("Nehru Jacket", "Semi-Formal", "Sleeveless waistcoat with mandarin collar.")),
+                SizeRow(listOf("Veshti/Mundu", "Traditional", "White unstitched cloth worn in South India.")),
+                SizeRow(listOf("Bandhgala", "Formal", "Closed-neck formal suit jacket."))
             )
-        ),
+        )
+    )
+
+    val worldCategories = listOf(
         SizeChart(
             "World Heritage Styles",
             listOf("Region", "Garment", "Significance"),
@@ -315,9 +322,15 @@ object SizeGuideData {
                 SizeRow(listOf("Scotland", "Kilt", "Knee-length non-bifurcated skirt, tartan pattern.")),
                 SizeRow(listOf("Mexico", "Huipil", "Loose-fitting tunic, usually made of 2-3 webbings.")),
                 SizeRow(listOf("West Africa", "Dashiki", "Colorful garment covering the top half of body.")),
-                SizeRow(listOf("Korea", "Hanbok", "Traditional attire with vibrant colors, simple lines."))
+                SizeRow(listOf("Korea", "Hanbok", "Traditional attire with vibrant colors, simple lines.")),
+                SizeRow(listOf("Vietnam", "Ao Dai", "Long split tunic worn over silk trousers.")),
+                SizeRow(listOf("China", "Qipao", "Body-hugging one-piece dress, high neck.")),
+                SizeRow(listOf("Germany", "Dirndl", "Traditional dress with bodice, blouse, and apron."))
             )
-        ),
+        )
+    )
+
+    val tribalCategories = listOf(
         SizeChart(
             "Tribal & Indigenous",
             listOf("Group", "Style", "Feature"),
@@ -325,12 +338,29 @@ object SizeGuideData {
                 SizeRow(listOf("Maasai", "Shuka", "Brightly colored (usually red) wrapped cloths.")),
                 SizeRow(listOf("Quechua", "Poncho", "Outer garment designed to keep the body warm.")),
                 SizeRow(listOf("Sami", "Gakti", "Traditional clothing with distinct color bands.")),
-                SizeRow(listOf("Inuit", "Parka", "Heavy coat with fur-lined hood for extreme cold."))
+                SizeRow(listOf("Inuit", "Parka", "Heavy coat with fur-lined hood for extreme cold.")),
+                SizeRow(listOf("Zulu", "Isidwaba", "Traditional leather skirt worn by married women.")),
+                SizeRow(listOf("Maori", "Korowai", "Finely woven cloak decorated with tassels.")),
+                SizeRow(listOf("Navajo", "Velvet Shirt", "Worn with silver jewelry and tiered skirts."))
             )
         )
     )
 
-    val styleGuides = listOf(
+    val modernCategories = listOf(
+        SizeChart(
+            "Modern Fashion Aesthetics",
+            listOf("Aesthetic", "Core Elements"),
+            listOf(
+                SizeRow(listOf("Minimalist", "Neutral colors, Clean lines, Quality basics.")),
+                SizeRow(listOf("Bohemian", "Flowy fabrics, Earthy tones, Ethnic prints.")),
+                SizeRow(listOf("Streetwear", "Oversized fits, Sneakers, Graphic tees.")),
+                SizeRow(listOf("Preppy", "Polo shirts, Blazers, Pleated skirts.")),
+                SizeRow(listOf("Grunge", "Flannel shirts, Distressed denim, Combat boots.")),
+                SizeRow(listOf("Dark Academia", "Tweed blazers, Turtlenecks, Oxford shoes.")),
+                SizeRow(listOf("Cottagecore", "Floral prints, Puff sleeves, Linen fabrics.")),
+                SizeRow(listOf("Cyberpunk", "Tech-wear, Neon accents, Futuristic materials."))
+            )
+        ),
         SizeChart(
             "Body Types (Women)",
             listOf("Type", "Recommended Styles"),
@@ -343,17 +373,6 @@ object SizeGuideData {
             )
         ),
         SizeChart(
-            "Modern Fashion Aesthetics",
-            listOf("Aesthetic", "Core Elements"),
-            listOf(
-                SizeRow(listOf("Minimalist", "Neutral colors, Clean lines, Quality basics.")),
-                SizeRow(listOf("Bohemian", "Flowy fabrics, Earthy tones, Ethnic prints.")),
-                SizeRow(listOf("Streetwear", "Oversized fits, Sneakers, Graphic tees.")),
-                SizeRow(listOf("Preppy", "Polo shirts, Blazers, Pleated skirts.")),
-                SizeRow(listOf("Grunge", "Flannel shirts, Distressed denim, Combat boots."))
-            )
-        ),
-        SizeChart(
             "Fabric Care Guide",
             listOf("Fabric", "Wash", "Iron"),
             listOf(
@@ -362,6 +381,22 @@ object SizeGuideData {
                 SizeRow(listOf("Wool", "Dry clean / Hand wash", "Low heat, press cloth")),
                 SizeRow(listOf("Linen", "Machine wash cold", "High heat, while damp")),
                 SizeRow(listOf("Polyester", "Machine wash warm", "Low heat"))
+            )
+        )
+    )
+
+    val globalConversion = listOf(
+        SizeChart(
+            "Global Dress Size Mapping",
+            listOf("US", "UK", "EU", "IT", "FR", "JP", "AU", "CN", "KR"),
+            listOf(
+                SizeRow(listOf("0", "4", "32", "36", "34", "5", "4", "XXXS", "33")),
+                SizeRow(listOf("2", "6", "34", "38", "36", "7", "6", "XXS", "44")),
+                SizeRow(listOf("4", "8", "36", "40", "38", "9", "8", "XS", "55")),
+                SizeRow(listOf("6", "10", "38", "42", "40", "11", "10", "S", "66")),
+                SizeRow(listOf("8", "12", "40", "44", "42", "13", "12", "M", "77")),
+                SizeRow(listOf("10", "14", "42", "46", "44", "15", "14", "L", "88")),
+                SizeRow(listOf("12", "16", "44", "48", "46", "17", "16", "XL", "99"))
             )
         )
     )

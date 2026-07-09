@@ -25,7 +25,7 @@ import omni.toolbox.ui.components.ToolScreen
 @Composable
 fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, initialSubTab: Int = 0) {
     var selectedMainTab by remember { mutableIntStateOf(initialMainTab) }
-    val mainTabs = listOf("Women", "Men", "Kids", "Footwear", "Accessories", "Cultural", "Style", "Innerwear")
+    val mainTabs = listOf("Women", "Men", "Kids", "Footwear", "Accessories", "Indian", "World", "Tribal", "Modern", "Global", "Innerwear")
 
     val currentCategories = when (selectedMainTab) {
         0 -> SizeGuideData.womenCategories
@@ -33,8 +33,11 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
         2 -> SizeGuideData.kidsCategories
         3 -> SizeGuideData.footwearCategories
         4 -> SizeGuideData.accessoriesCategories
-        5 -> SizeGuideData.culturalCategories
-        6 -> SizeGuideData.styleGuides
+        5 -> SizeGuideData.indianCategories
+        6 -> SizeGuideData.worldCategories
+        7 -> SizeGuideData.tribalCategories
+        8 -> SizeGuideData.modernCategories
+        9 -> SizeGuideData.globalConversion
         else -> SizeGuideData.innerwearCategories
     }
 
@@ -93,7 +96,7 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
                     }
                 }
 
-                if (selectedMainTab == 7 && selectedSubCategoryIndex == 0) {
+                if (selectedMainTab == 10 && selectedSubCategoryIndex == 0) {
                    item {
                        BraSizeCalculatorUI()
                    }

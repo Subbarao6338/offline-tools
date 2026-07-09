@@ -10,8 +10,11 @@ class SizeGuideDataTest {
         assertTrue(SizeGuideData.menCategories.isNotEmpty())
         assertTrue(SizeGuideData.footwearCategories.isNotEmpty())
         assertTrue(SizeGuideData.accessoriesCategories.isNotEmpty())
-        assertTrue(SizeGuideData.culturalCategories.isNotEmpty())
-        assertTrue(SizeGuideData.styleGuides.isNotEmpty())
+        assertTrue(SizeGuideData.indianCategories.isNotEmpty())
+        assertTrue(SizeGuideData.worldCategories.isNotEmpty())
+        assertTrue(SizeGuideData.tribalCategories.isNotEmpty())
+        assertTrue(SizeGuideData.modernCategories.isNotEmpty())
+        assertTrue(SizeGuideData.globalConversion.isNotEmpty())
         assertTrue(SizeGuideData.innerwearCategories.isNotEmpty())
     }
 
@@ -21,8 +24,11 @@ class SizeGuideDataTest {
                          SizeGuideData.menCategories +
                          SizeGuideData.footwearCategories +
                          SizeGuideData.accessoriesCategories +
-                         SizeGuideData.culturalCategories +
-                         SizeGuideData.styleGuides +
+                         SizeGuideData.indianCategories +
+                         SizeGuideData.worldCategories +
+                         SizeGuideData.tribalCategories +
+                         SizeGuideData.modernCategories +
+                         SizeGuideData.globalConversion +
                          SizeGuideData.innerwearCategories
 
         for (chart in allCharts) {

@@ -366,10 +366,22 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         // --- Lifestyle Screens ---
         route == "size_fit_group" -> SizeGuideScreen(navController)
         route == "clothing_sizes" -> SizeGuideScreen(navController, initialMainTab = 0)
-        route == "shoe_sizes" -> SizeGuideScreen(navController, initialMainTab = 3)
+        route == "dress_guide" -> SizeGuideScreen(navController, initialMainTab = 0, initialSubTab = 0)
+        route == "clothes_guide" -> SizeGuideScreen(navController, initialMainTab = 0)
+        route == "shoe_sizes" || route == "footwear_guide" -> SizeGuideScreen(navController, initialMainTab = 3)
         route == "ring_sizes" -> SizeGuideScreen(navController, initialMainTab = 4, initialSubTab = 0)
-        route == "bra_calculator" -> SizeGuideScreen(navController, initialMainTab = 7, initialSubTab = 0)
-        route == "body_measurements" -> SizeGuideScreen(navController, initialMainTab = 6)
+        route == "headwear_guide" -> SizeGuideScreen(navController, initialMainTab = 4, initialSubTab = 1)
+        route == "accessories_guide" -> SizeGuideScreen(navController, initialMainTab = 4)
+        route == "indian_fashion" -> SizeGuideScreen(navController, initialMainTab = 5)
+        route == "world_fashion" || route == "traditional_fashion" -> SizeGuideScreen(navController, initialMainTab = 6)
+        route == "tribal_fashion" -> SizeGuideScreen(navController, initialMainTab = 7)
+        route == "modern_fashion" || route == "fashion_guide" -> SizeGuideScreen(navController, initialMainTab = 8)
+        route == "all_countries_sizes" -> SizeGuideScreen(navController, initialMainTab = 9)
+        route == "topwear_guide" -> SizeGuideScreen(navController, initialMainTab = 0, initialSubTab = 1)
+        route == "bottomwear_guide" -> SizeGuideScreen(navController, initialMainTab = 0, initialSubTab = 4)
+        route == "waistwear_guide" -> SizeGuideScreen(navController, initialMainTab = 4, initialSubTab = 2)
+        route == "bra_calculator" -> SizeGuideScreen(navController, initialMainTab = 10, initialSubTab = 0)
+        route == "body_measurements" -> SizeGuideScreen(navController, initialMainTab = 8, initialSubTab = 1) // Using Modern for now as I renamed tabs
 
         // --- 2. Shared Multi-Category Screens ---
         listOf("matrix_calc", "eq_solver", "fraction_calc", "truth_table", "binary_calc", "stats").contains(route) -> MathToolScreen(navController, tool.name)
