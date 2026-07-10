@@ -129,7 +129,8 @@ object ToolProvider {
         Tool("Calculators", Icons.Default.Calculate, "calc_group", "Daily Helpers", Color(0xFFFF9800),
             description = "Practical calculators for daily use.",
             subToolRoutes = listOf(
-                "calculator", "discount", "tip", "unit_compare", "unit_price", "volume_calc", "billing"
+                "calculator", "discount", "tip", "unit_compare", "unit_price", "volume_calc", "billing",
+                "bra_calculator", "underwear_calculator", "dress_calculator", "ring_calculator", "arm_calculator", "body_calculator", "kids_calculator"
             )),
         Tool("Unit Converters", Icons.Default.SwapHoriz, "conv_group", "Daily Helpers", Color(0xFF2196F3),
             description = "Convert between various units.",
@@ -225,8 +226,7 @@ object ToolProvider {
                 "pdf_repair", "pdf_rotate", "pdf_signature", "pdf_split", "pdf_unlock",
                 "pdf_watermark", "pdf_zip", "pdf_html_to_pdf", "pdf_scan_to_pdf", "pdf_fill_forms",
                 "pdf_word_to_pdf", "pdf_excel_to_pdf", "pdf_text_to_pdf", "pdf_qr_to_pdf",
-                "pdf_barcode_to_pdf", "pdf_invert", "pdf_to_mdx", "pdf_to_mhtml",
-                "pdf_remove_pages", "pdf_page_numbers"
+                "pdf_barcode_to_pdf", "pdf_invert", "pdf_to_mdx", "pdf_to_mhtml"
             )),
         Tool("Office & Files", Icons.Default.Description, "docs_group", "Productivity", color = Color(0xFF607D8B),
             description = "Manage documents and files.",
@@ -300,7 +300,7 @@ object ToolProvider {
         Tool("Fashion & Size Hub", Icons.Default.Checkroom, "size_fit_group", "Fashion & Lifestyle", Color(0xFFE91E63),
             description = "Explore global fashion styles, regional size guides, and cultural heritage.",
             subToolRoutes = listOf(
-                "clothing_sizes", "shoe_sizes", "ring_sizes", "bra_calculator", "body_measurements",
+                "clothing_sizes", "shoe_sizes", "ring_sizes", "body_measurements",
                 "dress_guide", "clothes_guide", "headwear_guide", "footwear_guide", "accessories_guide",
                 "fashion_guide", "traditional_fashion", "modern_fashion", "tribal_fashion", "indian_fashion",
                 "world_fashion", "all_countries_sizes", "topwear_guide", "bottomwear_guide", "waistwear_guide"
@@ -451,7 +451,6 @@ object ToolProvider {
         Tool("Wallpapers Export", Icons.Default.Wallpaper, "image_wallpapers", category = "Image Studio", isVisibleOnHome = false, isSubTool = true),
         Tool("Watermarking", Icons.AutoMirrored.Filled.BrandingWatermark, "image_watermark", category = "Image Studio", isVisibleOnHome = false, isSubTool = true),
         Tool("Wave Generator", Icons.Default.Waves, "wave_generator", category = "Audio Lab", isVisibleOnHome = false, isSubTool = true),
-        Tool("Noise Generator", Icons.Default.GraphicEq, "noise_generator", category = "Audio Lab", isVisibleOnHome = false, isSubTool = true),
         Tool("Web Image Loading", Icons.Default.CloudDownload, "image_web_load", category = "Image Studio", isVisibleOnHome = false, isSubTool = true),
         Tool("WEBP to images", Icons.Default.Collections, "webp_to_images", category = "Image Studio", isVisibleOnHome = false, isSubTool = true),
         Tool("AI Noise Remover", Icons.Default.BlurOff, "ai_noise_remover", category = "Audio Lab", isVisibleOnHome = false, isSubTool = true),
@@ -812,7 +811,13 @@ object ToolProvider {
         Tool("Clothing Sizes", Icons.Default.Checkroom, "clothing_sizes", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Shoe Sizes", Icons.Default.DirectionsRun, "shoe_sizes", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Ring Sizes", Icons.Default.RadioButtonUnchecked, "ring_sizes", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
-        Tool("Bra Calculator", Icons.Default.Calculate, "bra_calculator", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Bra Calculator", Icons.Default.Calculate, "bra_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
+        Tool("Underwear Calculator", Icons.Default.Calculate, "underwear_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
+        Tool("Dress Calculator", Icons.Default.Calculate, "dress_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
+        Tool("Ring Calculator", Icons.Default.Calculate, "ring_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
+        Tool("Arm Calculator", Icons.Default.Calculate, "arm_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
+        Tool("Body Measurements Calculator", Icons.Default.Calculate, "body_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
+        Tool("Kids Size Calculator", Icons.Default.Calculate, "kids_calculator", category = "Math Hub", isVisibleOnHome = false, isSubTool = true),
         Tool("Body Measurements", Icons.Default.Straighten, "body_measurements", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Dress Guide", Icons.Default.Checkroom, "dress_guide", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Clothes Guide", Icons.Default.Checkroom, "clothes_guide", category = "Fashion & Lifestyle", isVisibleOnHome = false, isSubTool = true),
