@@ -69,6 +69,10 @@ import omni.toolbox.ui.screens.social.*
 import omni.toolbox.ui.screens.electronics.*
 import omni.toolbox.ui.screens.data.*
 import omni.toolbox.ui.screens.comm.*
+import omni.toolbox.ui.screens.news.NewsScreen
+import omni.toolbox.ui.screens.shopping.ShoppingScreen
+import omni.toolbox.ui.screens.sports.SportsScreen
+import omni.toolbox.ui.screens.food.FoodDrinkScreen
 
 @Composable
 fun OmniToolboxApp(
@@ -219,6 +223,10 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
 
     when {
         // --- 1. Specialized Screens by Route (Direct Mapping) ---
+        route == "news_companion" -> NewsScreen(navController)
+        route == "shopping_companion" -> ShoppingScreen(navController)
+        route == "sports_companion" -> SportsScreen(navController)
+        route == "food_drink_companion" -> FoodDrinkScreen(navController)
         route == "telemetry_stats" -> StatsBackupScreen(navController, omniViewModel)
         route == "web_scraper" -> DocsCrawlerScreen(navController, omniViewModel)
         route == "ai_image" -> ImageGeneratorScreen(navController, aiApiKey, stableDiffusionUrl)
