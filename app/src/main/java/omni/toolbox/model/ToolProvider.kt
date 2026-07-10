@@ -61,7 +61,7 @@ object ToolProvider {
         // 6. Converters
         Tool("Converters Hub", Icons.Default.SwapHoriz, "conv_group", "Converters", Color(0xFF2196F3),
             description = "Convert between various unit, currency, and file systems.",
-            subToolRoutes = listOf("base_conv", "converter", "crypto_conv", "currency", "torque_conv", "file_conv")),
+            subToolRoutes = listOf("base_conv", "converter", "crypto_conv", "currency", "torque_conv", "file_conv", "file_checksum")),
 
         // 7. Data Lab
         Tool("Data Lab Hub", Icons.Default.Storage, "data_tools_group", "Data Lab", Color(0xFF009688),
@@ -314,7 +314,7 @@ object ToolProvider {
         // 38. Web Tools
         Tool("Web Search & Grabber", Icons.Default.Language, "web_tools_group", "Web Tools", Color(0xFF2196F3),
             description = "Online meta-tag visualizers and downloader assistance.",
-            subToolRoutes = listOf("hub", "media_grabber", "meta_anal", "web")),
+            subToolRoutes = listOf("hub", "media_grabber", "meta_anal", "web", "youtube_utility")),
 
         // 39. Sensors
         Tool("Sensors & Diagnostics", Icons.Default.Sensors, "sensor_group", "Sensors", Color(0xFF673AB7),
@@ -467,6 +467,7 @@ object ToolProvider {
         Tool("Unit Circle", Icons.Default.InvertColors, "unit_circle", category = "Education", isVisibleOnHome = false, isSubTool = true),
 
         // --- CONVERTERS ---
+        Tool("Checksum Verifier", Icons.Default.VerifiedUser, "file_checksum", category = "Converters", isVisibleOnHome = false, isSubTool = true),
         Tool("Base Converter", Icons.Default.Numbers, "base_conv", category = "Converters", isVisibleOnHome = false, isSubTool = true),
         Tool("Unit Converter", Icons.Default.SwapHoriz, "converter", category = "Converters", isVisibleOnHome = false, isSubTool = true),
         Tool("Crypto Converter", Icons.Default.CurrencyExchange, "crypto_conv", category = "Converters", isVisibleOnHome = false, isSubTool = true),
@@ -733,6 +734,7 @@ object ToolProvider {
         Tool("Weather Prediction", Icons.Default.Cloud, "weather_prediction", category = "Weather", isVisibleOnHome = false, isSubTool = true),
 
         // --- WEB TOOLS ---
+        Tool("YouTube Companion", Icons.Default.SmartDisplay, "youtube_utility", category = "Web Tools", isVisibleOnHome = false, isSubTool = true),
         Tool("Epic Bookmarx", Icons.Default.Hub, "hub", category = "Web Tools", isVisibleOnHome = false, isSubTool = true),
         Tool("Media Grabber", Icons.Default.Download, "media_grabber", category = "Web Tools", isVisibleOnHome = false, isSubTool = true),
         Tool("Metatag Analyzer", Icons.Default.Search, "meta_anal", category = "Web Tools", isVisibleOnHome = false, isSubTool = true),
