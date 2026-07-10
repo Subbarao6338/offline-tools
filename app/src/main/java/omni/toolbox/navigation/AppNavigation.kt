@@ -241,6 +241,7 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         route == "voice_memo" -> VoiceMemoScreen(navController)
         route == "exif_viewer" -> ExifViewerScreen(navController)
         route == "media_grabber" -> MediaGrabberScreen(navController, null)
+        route == "youtube_utility" -> YoutubeUtilityScreen(navController)
         route == "file_conv" -> FileConverterScreen(navController)
         route == "profile_photo_maker" -> ProfilePhotoMakerScreen(navController)
         route == "batch_img_pro_v2" -> BatchImageProScreen(navController)
@@ -295,6 +296,7 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
 
         listOf("unit_price", "unit_compare").contains(route) -> UnitPriceCalculatorScreen(navController)
         route == "base_conv" -> BaseConverterScreen(navController)
+        route == "file_checksum" -> FileChecksumScreen(navController)
         listOf("converter", "torque_conv").contains(route) -> UnitConverterScreen(navController)
 
         route == "battery" -> BatteryScreen(navController)

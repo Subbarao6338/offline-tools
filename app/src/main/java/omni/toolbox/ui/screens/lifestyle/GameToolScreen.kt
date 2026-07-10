@@ -62,10 +62,89 @@ fun GameToolScreen(navController: NavHostController, title: String) {
                 "Number Guessing" -> NumberGuessingGame()
                 "Random Gen" -> RandomGeneratorGame()
                 "Minesweeper" -> MinesweeperGame()
-                else -> {
-                    Icon(Icons.Default.Casino, contentDescription = null, modifier = Modifier.size(64.dp))
-                    Text("Simulation for $title active. Scores being tracked.")
+                else -> SpeedClickerGame(title)
+            }
+        }
+    }
+}
+
+@Composable
+fun SpeedClickerGame(name: String) {
+    var score by remember { mutableIntStateOf(0) }
+    var highScore by remember { mutableIntStateOf(0) }
+    var timeLeft by remember { mutableIntStateOf(10) }
+    var gameActive by remember { mutableStateOf(false) }
+    var gameEnded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(gameActive) {
+        if (gameActive) {
+            timeLeft = 10
+            while (timeLeft > 0) {
+                delay(1000)
+                timeLeft--
+            }
+            gameActive = false
+            gameEnded = true
+            if (score > highScore) {
+                highScore = score
+            }
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp)
+    ) {
+        Icon(Icons.Default.SportsEsports, contentDescription = null, modifier = Modifier.size(72.dp), tint = MaterialTheme.colorScheme.primary)
+        Text(name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text("Can you beat the clock? Tap as fast as you can in 10 seconds!", style = MaterialTheme.typography.bodyMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Card {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Score", style = MaterialTheme.typography.labelSmall)
+                    Text("$score", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 }
+            }
+            Card {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("High Score", style = MaterialTheme.typography.labelSmall)
+                    Text("$highScore", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (gameActive) {
+            Text("Time Left: ${timeLeft}s", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+            Button(
+                onClick = { score++ },
+                shape = CircleShape,
+                modifier = Modifier.size(160.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("TAP!", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            if (gameEnded) {
+                Text("Game Over! Your Score: $score", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            }
+            Button(
+                onClick = {
+                    score = 0
+                    gameActive = true
+                    gameEnded = false
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (gameEnded) "Play Again" else "Start Clicker Game", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

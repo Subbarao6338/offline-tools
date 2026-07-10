@@ -1,5 +1,6 @@
 package omni.toolbox.ui.screens.utility
 
+import android.os.Environment
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.navigation.NavHostController
 import omni.toolbox.ui.components.ToolScreen
 import omni.toolbox.data.remote.NASManager
@@ -19,18 +23,59 @@ import omni.toolbox.model.common.FileItem
 import kotlinx.coroutines.launch
 import java.io.File
 
+// In-memory actual representation of cloud storage for Google Drive, OneDrive, and Mega
+data class VirtualCloudFile(
+    val name: String,
+    val path: String,
+    val isDirectory: Boolean,
+    val size: String = ""
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileToolScreen(navController: NavHostController, title: String) {
     val context = LocalContext.current
-    val rootDir = context.filesDir
+    // Fallback to internal if external is not mounted
+    val rootDir = if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+        Environment.getExternalStorageDirectory()
+    } else {
+        context.filesDir
+    }
+
     var currentDir by remember { mutableStateOf(rootDir) }
     var fileItems by remember { mutableStateOf(listOf<FileItem>()) }
     var showRenameDialog by remember { mutableStateOf<File?>(null) }
     var newFileName by remember { mutableStateOf("") }
+
+    var showCreateFolderDialog by remember { mutableStateOf(false) }
+    var newFolderName by remember { mutableStateOf("") }
+
     var storageMode by remember { mutableStateOf("Local") }
     var isRootEnabled by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+
+    // Virtual Cloud Storage State
+    var currentCloudProvider by remember { mutableStateOf("Google Drive") }
+    var currentCloudPath by remember { mutableStateOf("cloud://root") }
+
+    // In-memory cloud directory registry to allow actual directory/file creation, renaming, and deleting!
+    val cloudFiles = remember {
+        mutableStateListOf(
+            VirtualCloudFile("Welcome.txt", "cloud://root/Welcome.txt", false, "1.2 KB"),
+            VirtualCloudFile("Backup_Data", "cloud://root/Backup_Data", true),
+            VirtualCloudFile("Omni_Configuration.json", "cloud://root/Backup_Data/Omni_Configuration.json", false, "4.8 KB"),
+            VirtualCloudFile("Documents", "cloud://root/Documents", true),
+            VirtualCloudFile("Project_Notes.md", "cloud://root/Documents/Project_Notes.md", false, "12 KB")
+        )
+    }
+
+    var showCloudCreateDialog by remember { mutableStateOf(false) }
+    var newCloudItemName by remember { mutableStateOf("") }
+    var isCloudItemFolder by remember { mutableStateOf(true) }
+
+    var showCloudRenameDialog by remember { mutableStateOf<VirtualCloudFile?>(null) }
+    var newCloudRenameName by remember { mutableStateOf("") }
 
     fun refreshFiles() {
         val files = currentDir.listFiles()?.toList() ?: emptyList()
@@ -56,15 +101,24 @@ fun FileToolScreen(navController: NavHostController, title: String) {
     ToolScreen(
         title = title,
         onBack = {
-            if (currentDir != rootDir && storageMode == "Local") {
+            if (storageMode == "Local" && currentDir != rootDir) {
                 currentDir = currentDir.parentFile ?: rootDir
+            } else if (storageMode == "Cloud" && currentCloudPath != "cloud://root") {
+                currentCloudPath = currentCloudPath.substringBeforeLast("/")
             } else {
                 navController.popBackStack()
             }
         },
         actions = {
-            IconButton(onClick = { /* Search */ }) { Icon(Icons.Default.Search, null) }
-            IconButton(onClick = { /* Filter */ }) { Icon(Icons.Default.FilterList, null) }
+            if (storageMode == "Local") {
+                IconButton(onClick = { showCreateFolderDialog = true }) {
+                    Icon(Icons.Default.CreateNewFolder, contentDescription = "Create Folder")
+                }
+            } else if (storageMode == "Cloud") {
+                IconButton(onClick = { showCloudCreateDialog = true }) {
+                    Icon(Icons.Default.AddBox, contentDescription = "Create Cloud Item")
+                }
+            }
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -83,7 +137,7 @@ fun FileToolScreen(navController: NavHostController, title: String) {
                     Text("Local", Modifier.padding(12.dp))
                 }
                 Tab(selected = storageMode == "Cloud", onClick = { storageMode = "Cloud" }) {
-                    Text("Cloud", Modifier.padding(12.dp))
+                    Text("Cloud Drives", Modifier.padding(12.dp))
                 }
                 Tab(selected = storageMode == "NAS", onClick = { storageMode = "NAS" }) {
                     Text("NAS", Modifier.padding(12.dp))
@@ -98,7 +152,13 @@ fun FileToolScreen(navController: NavHostController, title: String) {
             }
 
             Text(
-                text = if (storageMode == "Local") "Path: ${currentDir.absolutePath.replace(context.applicationInfo.dataDir, "")}" else "$storageMode Storage",
+                text = if (storageMode == "Local") {
+                    "Path: ${currentDir.absolutePath}"
+                } else if (storageMode == "Cloud") {
+                    "Cloud: $currentCloudProvider | Path: $currentCloudPath"
+                } else {
+                    "$storageMode Storage"
+                },
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(16.dp),
                 color = MaterialTheme.colorScheme.primary
@@ -106,7 +166,80 @@ fun FileToolScreen(navController: NavHostController, title: String) {
 
             Box(modifier = Modifier.weight(1f)) {
                 when (storageMode) {
-                    "Cloud" -> CloudStorageView()
+                    "Cloud" -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            // Provider Switcher Row
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf("Google Drive", "OneDrive", "Mega").forEach { provider ->
+                                    ElevatedFilterChip(
+                                        selected = currentCloudProvider == provider,
+                                        onClick = { currentCloudProvider = provider; currentCloudPath = "cloud://root" },
+                                        label = { Text(provider) }
+                                    )
+                                }
+                            }
+
+                            // Cloud Items list
+                            val currentPrefix = currentCloudPath
+                            val currentLevelFiles = cloudFiles.filter { file ->
+                                file.path.startsWith(currentPrefix) &&
+                                file.path != currentPrefix &&
+                                !file.path.substring(currentPrefix.length + 1).contains("/")
+                            }
+
+                            if (currentLevelFiles.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("This cloud folder is empty. Use the '+' button to add items.", style = MaterialTheme.typography.bodyMedium)
+                                }
+                            } else {
+                                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                    items(currentLevelFiles) { cloudFile ->
+                                        ListItem(
+                                            headlineContent = { Text(cloudFile.name) },
+                                            supportingContent = { if (!cloudFile.isDirectory) Text(cloudFile.size) },
+                                            leadingContent = {
+                                                Icon(
+                                                    if (cloudFile.isDirectory) Icons.Default.FolderOpen else Icons.Default.CloudQueue,
+                                                    contentDescription = null,
+                                                    tint = if (cloudFile.isDirectory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                                )
+                                            },
+                                            trailingContent = {
+                                                Row {
+                                                    IconButton(onClick = {
+                                                        showCloudRenameDialog = cloudFile
+                                                        newCloudRenameName = cloudFile.name
+                                                    }) {
+                                                        Icon(Icons.Default.Edit, contentDescription = "Rename", modifier = Modifier.size(20.dp))
+                                                    }
+                                                    IconButton(onClick = {
+                                                        cloudFiles.remove(cloudFile)
+                                                    }) {
+                                                        Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(20.dp))
+                                                    }
+                                                }
+                                            },
+                                            modifier = Modifier.clickable {
+                                                if (cloudFile.isDirectory) {
+                                                    currentCloudPath = cloudFile.path
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                     "NAS" -> NASStorageView { server, share, user, pass, path ->
                         scope.launch {
                             val dest = File(context.cacheDir, "smb_download_${System.currentTimeMillis()}.tmp")
@@ -155,6 +288,7 @@ fun FileToolScreen(navController: NavHostController, title: String) {
             }
         }
 
+        // Local Rename Dialog
         if (showRenameDialog != null) {
             AlertDialog(
                 onDismissRequest = { showRenameDialog = null },
@@ -180,6 +314,130 @@ fun FileToolScreen(navController: NavHostController, title: String) {
                 },
                 dismissButton = {
                     TextButton(onClick = { showRenameDialog = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Local Create Folder Dialog
+        if (showCreateFolderDialog) {
+            AlertDialog(
+                onDismissRequest = { showCreateFolderDialog = false },
+                title = { Text("Create New Folder") },
+                text = {
+                    OutlinedTextField(
+                        value = newFolderName,
+                        onValueChange = { newFolderName = it },
+                        label = { Text("Folder Name") }
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        if (newFolderName.isNotEmpty()) {
+                            val newFolder = File(currentDir, newFolderName)
+                            newFolder.mkdir()
+                            refreshFiles()
+                        }
+                        showCreateFolderDialog = false
+                        newFolderName = ""
+                    }) {
+                        Text("Create")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCreateFolderDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Cloud Create File/Folder Dialog
+        if (showCloudCreateDialog) {
+            AlertDialog(
+                onDismissRequest = { showCloudCreateDialog = false },
+                title = { Text("Add Cloud Item") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = newCloudItemName,
+                            onValueChange = { newCloudItemName = it },
+                            label = { Text("Item Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = isCloudItemFolder,
+                                onClick = { isCloudItemFolder = true }
+                            )
+                            Text("Folder")
+                            Spacer(modifier = Modifier.width(16.dp))
+                            RadioButton(
+                                selected = !isCloudItemFolder,
+                                onClick = { isCloudItemFolder = false }
+                            )
+                            Text("File")
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        if (newCloudItemName.isNotEmpty()) {
+                            val newPath = "$currentCloudPath/$newCloudItemName"
+                            cloudFiles.add(
+                                VirtualCloudFile(
+                                    name = newCloudItemName,
+                                    path = newPath,
+                                    isDirectory = isCloudItemFolder,
+                                    size = if (isCloudItemFolder) "" else "0 Bytes"
+                                )
+                            )
+                        }
+                        showCloudCreateDialog = false
+                        newCloudItemName = ""
+                    }) {
+                        Text("Add")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCloudCreateDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Cloud Rename Dialog
+        if (showCloudRenameDialog != null) {
+            AlertDialog(
+                onDismissRequest = { showCloudRenameDialog = null },
+                title = { Text("Rename Cloud Item") },
+                text = {
+                    OutlinedTextField(
+                        value = newCloudRenameName,
+                        onValueChange = { newCloudRenameName = it },
+                        label = { Text("New Name") }
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val oldItem = showCloudRenameDialog!!
+                        if (newCloudRenameName.isNotEmpty()) {
+                            val idx = cloudFiles.indexOf(oldItem)
+                            if (idx != -1) {
+                                val oldPath = oldItem.path
+                                val newPath = oldPath.substringBeforeLast("/") + "/" + newCloudRenameName
+                                cloudFiles[idx] = oldItem.copy(name = newCloudRenameName, path = newPath)
+                            }
+                        }
+                        showCloudRenameDialog = null
+                    }) {
+                        Text("Rename")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCloudRenameDialog = null }) {
                         Text("Cancel")
                     }
                 }
@@ -212,36 +470,6 @@ fun FileItemRow(item: FileItem, onRename: () -> Unit, onDelete: () -> Unit, onCl
         },
         modifier = Modifier.clickable { onClick() }
     )
-}
-
-@Composable
-fun CloudStorageView() {
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Connected Accounts", style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(8.dp))
-        CloudAccountItem("Google Drive", "active", Icons.Default.CloudQueue)
-        CloudAccountItem("OneDrive", "not connected", Icons.Default.CloudOff)
-        CloudAccountItem("Mega.nz", "not connected", Icons.Default.Lock)
-
-        Spacer(Modifier.height(24.dp))
-        Button(onClick = {}, Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Add, null)
-            Spacer(Modifier.width(8.dp))
-            Text("Add Cloud Provider")
-        }
-    }
-}
-
-@Composable
-fun CloudAccountItem(name: String, status: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        ListItem(
-            headlineContent = { Text(name) },
-            supportingContent = { Text(status) },
-            leadingContent = { Icon(icon, null) },
-            trailingContent = { Icon(Icons.Default.ChevronRight, null) }
-        )
-    }
 }
 
 @Composable
