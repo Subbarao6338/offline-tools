@@ -31,7 +31,12 @@ import omni.toolbox.ui.components.ToolScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, initialSubTab: Int = 0) {
+fun SizeGuideScreen(
+    navController: NavHostController,
+    initialMainTab: Int = 0,
+    initialSubTab: Int = 0,
+    showTabs: Boolean = true
+) {
     var selectedMainTab by remember { mutableIntStateOf(initialMainTab) }
     val mainTabs = listOf("Women", "Men", "Kids", "Footwear", "Accessories", "Indian", "World", "Tribal", "Modern", "Global", "Innerwear", "Materials")
 
@@ -54,20 +59,24 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
         mutableIntStateOf(if (selectedMainTab == initialMainTab) initialSubTab else 0)
     }
 
-    ToolScreen(title = "Fashion & Size Hub", onBack = { navController.popBackStack() }) { padding ->
+    val screenTitle = if (showTabs) "Fashion & Size Hub" else "${mainTabs[selectedMainTab]} Size Guide"
+
+    ToolScreen(title = screenTitle, onBack = { navController.popBackStack() }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            ScrollableTabRow(
-                selectedTabIndex = selectedMainTab,
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary
-            ) {
-                mainTabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedMainTab == index,
-                        onClick = { selectedMainTab = index },
-                        text = { Text(title) }
-                    )
+            if (showTabs) {
+                ScrollableTabRow(
+                    selectedTabIndex = selectedMainTab,
+                    edgePadding = 16.dp,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    mainTabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedMainTab == index,
+                            onClick = { selectedMainTab = index },
+                            text = { Text(title) }
+                        )
+                    }
                 }
             }
 
@@ -109,10 +118,8 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
                     }
                 }
 
-                if (selectedMainTab == 10 && selectedSubCategoryIndex == 0) {
-                    item {
-                        BraSizeCalculatorUI()
-                    }
+                item {
+                    InteractiveInlineCalculator(selectedMainTab, selectedSubCategoryIndex)
                 }
 
                 item {
@@ -140,6 +147,202 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InteractiveInlineCalculator(mainTab: Int, subTab: Int) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            when (mainTab) {
+                0, 1 -> { // Women, Men Clothing
+                    var chestOrBust by remember { mutableStateOf("36") }
+                    var waist by remember { mutableStateOf("30") }
+                    var hips by remember { mutableStateOf("38") }
+                    Text(
+                        text = "${if (mainTab == 0) "Women" else "Men"} Clothing Size Calculator",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = chestOrBust,
+                        onValueChange = { chestOrBust = it },
+                        label = { Text(if (mainTab == 0) "Bust (inches)" else "Chest (inches)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = waist,
+                        onValueChange = { waist = it },
+                        label = { Text("Waist (inches)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = hips,
+                        onValueChange = { hips = it },
+                        label = { Text("Hips (inches)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    val chestVal = chestOrBust.toDoubleOrNull() ?: 36.0
+                    val waistVal = waist.toDoubleOrNull() ?: 30.0
+                    val hipsVal = hips.toDoubleOrNull() ?: 38.0
+                    val estimatedSize = when {
+                        chestVal < 34 || waistVal < 26 || hipsVal < 36 -> "S (US 4 / EU 36)"
+                        chestVal < 37 || waistVal < 29 || hipsVal < 39 -> "M (US 6-8 / EU 38-40)"
+                        chestVal < 40 || waistVal < 32 || hipsVal < 42 -> "L (US 10-12 / EU 42-44)"
+                        else -> "XL (US 14-16 / EU 46)"
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Text(
+                            text = "Recommended Size: $estimatedSize",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                2 -> { // Kids
+                    var age by remember { mutableStateOf("6") }
+                    var height by remember { mutableStateOf("45") }
+                    Text(
+                        text = "Kids Clothing Size Calculator",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = age,
+                        onValueChange = { age = it },
+                        label = { Text("Age (years)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = height,
+                        onValueChange = { height = it },
+                        label = { Text("Height (inches)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    val ageVal = age.toDoubleOrNull() ?: 6.0
+                    val heightVal = height.toDoubleOrNull() ?: 45.0
+                    val estimatedSize = when {
+                        heightVal < 35 -> "Toddler (2T/3T)"
+                        heightVal < 42 -> "Kids XS (4-5)"
+                        heightVal < 48 -> "Kids S (6-7)"
+                        heightVal < 54 -> "Kids M (8-10)"
+                        else -> "Kids L (12-14)"
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Text(
+                            text = "Recommended Size: $estimatedSize",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                3 -> { // Footwear
+                    var footLen by remember { mutableStateOf("25") }
+                    var unitByCm by remember { mutableStateOf(true) }
+                    Text(
+                        text = "Shoe Size Calculator",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = footLen,
+                        onValueChange = { footLen = it },
+                        label = { Text(if (unitByCm) "Foot Length (cm)" else "Foot Length (inches)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = unitByCm, onCheckedChange = { unitByCm = it })
+                        Text("Measure in Centimeters (cm)")
+                    }
+                    val lengthCm = if (unitByCm) (footLen.toDoubleOrNull() ?: 25.0) else (footLen.toDoubleOrNull() ?: 9.8) * 2.54
+                    // Simple shoe sizing mapping formula
+                    val usSize = ((lengthCm - 12.0) * 0.84).coerceIn(4.0, 15.0)
+                    val euSize = (lengthCm * 1.5 + 2.0).coerceIn(34.0, 48.0)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Text(
+                            text = "Estimated Size: US ${"%.1f".format(usSize)} / EU ${euSize.toInt()}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                4 -> { // Accessories
+                    var headCircumference by remember { mutableStateOf("56") }
+                    Text(
+                        text = "Hat Size Calculator",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = headCircumference,
+                        onValueChange = { headCircumference = it },
+                        label = { Text("Head Circumference (cm)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    val circ = headCircumference.toDoubleOrNull() ?: 56.0
+                    val sizeCode = when {
+                        circ < 54.0 -> "XS"
+                        circ < 56.0 -> "S"
+                        circ < 58.0 -> "M"
+                        circ < 60.0 -> "L"
+                        else -> "XL"
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Text(
+                            text = "Recommended Hat Size: $sizeCode ($circ cm)",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                else -> { // Default/Fallback
+                    var lengthYards by remember { mutableStateOf("5.5") }
+                    Text(
+                        text = "Materials & Yardage Estimator",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = lengthYards,
+                        onValueChange = { lengthYards = it },
+                        label = { Text("Estimated Fabric Length (yards)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    val length = lengthYards.toDoubleOrNull() ?: 5.5
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Text(
+                            text = "Estimated Meters: ${"%.2f".format(length * 0.9144)} m",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
                 }
             }

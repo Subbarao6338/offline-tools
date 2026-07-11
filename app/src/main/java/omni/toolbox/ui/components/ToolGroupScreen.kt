@@ -118,6 +118,44 @@ fun ToolGroupScreen(
                         }
                     }
                 }
+            } else if (groupRoute == "docs_group") {
+                val corePdf = listOf("pdf_merge", "pdf_split", "pdf_preview", "pdf_print", "pdf_metadata")
+                val optPdf = listOf("pdf_compress", "pdf_protect", "pdf_unlock", "pdf_watermark", "pdf_flatten", "pdf_grayscale", "pdf_invert", "pdf_repair")
+                val convPdf = listOf("images_to_pdf", "pdf_html_to_pdf", "pdf_word_to_pdf", "pdf_excel_to_pdf", "pdf_text_to_pdf", "pdf_to_mdx", "pdf_to_mhtml", "pdf_extract_images", "csv_to_json", "sql_format", "markitdown")
+                val formPdf = listOf("pdf_fill_forms", "pdf_signature", "pdf_page_numbers", "pdf_rearrange", "pdf_remove_pages", "pdf_crop")
+                val officeFile = listOf("doc_scanner", "pdf_scan_to_pdf", "pdf_qr_to_pdf", "pdf_barcode_to_pdf", "duplicate_finder", "file_shredder", "storage_cleaner", "zip_unzip", "pdf_zip", "docs_online")
+
+                val sections = listOf(
+                    "Core PDF Utilities" to corePdf,
+                    "PDF Optimization & Security" to optPdf,
+                    "Format & Content Converters" to convPdf,
+                    "Form & Page Editors" to formPdf,
+                    "Office Scanner & File Tools" to officeFile
+                )
+
+                sections.forEach { (sectionName, routes) ->
+                    val toolsInSection = routes.mapNotNull { route ->
+                        subTools.find { it.route == route }
+                    }
+                    if (toolsInSection.isNotEmpty()) {
+                        Text(
+                            text = sectionName,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                        )
+                        toolsInSection.forEach { tool ->
+                            SubToolCard(
+                                tool = tool,
+                                isFavorite = favorites.contains(tool.route),
+                                onToggleFavorite = { onToggleFavorite(tool.route) },
+                                onClick = { navController.navigate(tool.route) }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                    }
+                }
             } else {
                 subTools.forEach { tool ->
                     SubToolCard(

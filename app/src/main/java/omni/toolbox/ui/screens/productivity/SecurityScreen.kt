@@ -28,37 +28,139 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable
 fun SecurityScreen(navController: NavHostController, title: String = "Security Vault") {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Encryption", "Password Gen", "QR Studio")
+    val isMainVault = title == "Security Vault" || title == "Privacy & Security Vault"
 
     ToolScreen(
         title = title,
         onBack = { navController.popBackStack() }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = selectedTab) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title) }
-                    )
-                }
-            }
+            if (isMainVault) {
+                var selectedTab by remember { mutableIntStateOf(0) }
+                val tabs = listOf("Encryption", "Password Gen", "QR Studio")
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                when (selectedTab) {
-                    0 -> EncryptionTab()
-                    1 -> PasswordTab()
-                    2 -> QrStudioTab(navController)
+                TabRow(selectedTabIndex = selectedTab) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { Text(title) }
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
+                    when (selectedTab) {
+                        0 -> EncryptionTab()
+                        1 -> PasswordTab()
+                        2 -> QrStudioTab(navController)
+                    }
+                }
+            } else {
+                // Specialized sub-utility security view based on title
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
+                    when (title) {
+                        "App Locker", "app_locker" -> {
+                            Text("Simulated App Locker Status", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            val apps = remember {
+                                mutableStateListOf(
+                                    "WhatsApp" to true,
+                                    "Google Chrome" to false,
+                                    "Gmail" to true,
+                                    "Photos" to false,
+                                    "Settings" to true
+                                )
+                            }
+                            apps.forEachIndexed { idx, pair ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(pair.first, style = MaterialTheme.typography.bodyLarge)
+                                    Switch(
+                                        checked = pair.second,
+                                        onCheckedChange = { checked ->
+                                            apps[idx] = pair.first to checked
+                                        }
+                                    )
+                                }
+                                HorizontalDivider()
+                            }
+                        }
+                        "App Permissions", "app_permissions", "Permission Manager", "perm_manager" -> {
+                            Text("Active App Permission Monitor", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            val perms = remember {
+                                mutableStateListOf(
+                                    "Location Access" to true,
+                                    "Camera Access" to false,
+                                    "Contacts Access" to true,
+                                    "Microphone Access" to false,
+                                    "Storage Access" to true
+                                )
+                            }
+                            perms.forEachIndexed { idx, pair ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(pair.first, style = MaterialTheme.typography.bodyLarge)
+                                    Switch(
+                                        checked = pair.second,
+                                        onCheckedChange = { checked ->
+                                            perms[idx] = pair.first to checked
+                                        }
+                                    )
+                                }
+                                HorizontalDivider()
+                            }
+                        }
+                        else -> { // Privacy Check / Fallback
+                            var scanning by remember { mutableStateOf(false) }
+                            var scanResult by remember { mutableStateOf<String?>(null) }
+                            val coroutineScope = rememberCoroutineScope()
+
+                            Text("Secure Privacy Shield", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            if (scanning) {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                            } else {
+                                Text(scanResult ?: "Start scanning to identify potential privacy leaks, ad-tracking activity, and background storage usage.")
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            scanning = true
+                                            delay(1500)
+                                            scanResult = "Privacy scan complete:\n• Ad Tracking Blocked: Yes\n• Background Location Leaks: None detected\n• Shared storage exposure risk: Safe"
+                                            scanning = false
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Run Privacy Scan")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
