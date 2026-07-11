@@ -45,7 +45,7 @@ object ToolProvider {
         // 3. Calculators
         Tool("Calculators Hub", Icons.Default.Calculate, "calc_group", "Calculators", Color(0xFFFF9800),
             description = "Practical calculators for daily use.",
-            subToolRoutes = listOf("calculator", "discount", "tip", "unit_compare", "unit_price", "volume_calc", "billing", "area_calc", "bra_calculator", "underwear_calculator", "dress_calculator", "ring_calculator", "arm_calculator", "body_calculator", "kids_calculator", "word_rank_calc")),
+            subToolRoutes = listOf("calculator", "discount", "tip", "unit_compare", "unit_price", "volume_calc", "billing", "area_calc", "bra_calculator", "underwear_calculator", "dress_calculator", "ring_calculator", "arm_calculator", "body_calculator", "kids_calculator", "word_rank_calc", "bangle_calculator")),
 
         // 4. Cloud & Local File Explorer
         Tool("Cloud & Local Files", Icons.Default.Folder, "file_explorer_group", "Cloud & Local File Explorer", Color(0xFF2196F3),
@@ -152,7 +152,9 @@ object ToolProvider {
             description = "Track workouts, calories, daily habits, and active progress.",
             subToolRoutes = listOf(
                 "bmi", "bmr", "calorie_calc", "macro_splitter", "habit_tracker", "meditation",
-                "sleep_tracker", "step_counter", "stretch_guide", "water_reminder", "yoga_guide"
+                "sleep_tracker", "step_counter", "stretch_guide", "water_reminder", "yoga_guide",
+                "heart_rate", "blood_pressure", "blood_sugar", "eye_exercise", "medication_tracker",
+                "period_tracker", "posture_check"
             )),
 
         // 18. Home
@@ -194,14 +196,6 @@ object ToolProvider {
         Tool("Maths Suite", Icons.Default.Functions, "math_group", "Maths", Color(0xFF607D8B),
             description = "Advanced analytical, equations solver, and matrix helpers.",
             subToolRoutes = listOf("binary_calc", "fraction_calc", "matrix_calc", "sci_calc", "stats", "truth_table", "eq_solver")),
-
-        // 23. Medical
-        Tool("Medical Monitor", Icons.Default.MedicalServices, "medical_group", "Medical", Color(0xFFE91E63),
-            description = "Log blood metrics, medication schedules, and check body posturing diagnostics.",
-            subToolRoutes = listOf(
-                "heart_rate", "blood_pressure", "blood_sugar", "eye_exercise", "medication_tracker",
-                "period_tracker", "posture_check"
-            )),
 
         // 24. Misc
         Tool("Miscellaneous Helper", Icons.Default.MoreHoriz, "misc_group", "Misc", Color(0xFF607D8B),
@@ -673,6 +667,7 @@ object ToolProvider {
         Tool("Arm Calculator", Icons.Default.Calculate, "arm_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
         Tool("Body Measurements Calculator", Icons.Default.Calculate, "body_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
         Tool("Kids Size Calculator", Icons.Default.Calculate, "kids_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Bangle Size Calculator", Icons.Default.Calculate, "bangle_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
         Tool("Word Rank Calculator", Icons.Default.Calculate, "word_rank_calc", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
 
         // --- MISC ---

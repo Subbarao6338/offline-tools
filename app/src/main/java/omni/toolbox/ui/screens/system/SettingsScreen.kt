@@ -144,39 +144,49 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
-            Text("Accent Color", style = MaterialTheme.typography.bodyLarge)
+            Text("Accent Color Palette", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
+            Text("Select an accent color to personalize the application interface:", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(12.dp))
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(40.dp),
-                modifier = Modifier.height(120.dp),
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(if (accentColor == null) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.3f))
-                            .clickable { onAccentColorChange(null) }
-                            .border(2.dp, if (accentColor == null) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (accentColor == null) Icon(Icons.Default.Check, contentDescription = null, tint = Color.White)
+                // System Default circle
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(if (accentColor == null) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.3f))
+                        .clickable { onAccentColorChange(null) }
+                        .border(3.dp, if (accentColor == null) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (accentColor == null) {
+                        Icon(Icons.Default.Check, contentDescription = "Active", tint = Color.White)
+                    } else {
+                        Icon(Icons.Default.SettingsSuggest, contentDescription = "Default", tint = Color.Gray)
                     }
                 }
-                items(AccentColors) { color ->
+
+                // Preset Accent Colors
+                AccentColors.forEach { color ->
+                    val isSelected = accentColor == color
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(44.dp)
                             .clip(CircleShape)
                             .background(color)
                             .clickable { onAccentColorChange(color) }
-                            .border(2.dp, if (accentColor == color) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape),
+                            .border(3.dp, if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (accentColor == color) Icon(Icons.Default.Check, contentDescription = null, tint = Color.White)
+                        if (isSelected) {
+                            Icon(Icons.Default.Check, contentDescription = "Selected", tint = Color.White)
+                        }
                     }
                 }
             }

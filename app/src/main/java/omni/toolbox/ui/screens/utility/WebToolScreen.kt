@@ -260,6 +260,15 @@ fun WebToolScreen(
                         )
 
                         ListItem(
+                            headlineContent = { Text("Back to Tool Hub") },
+                            leadingContent = { Icon(Icons.Default.Home, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                showMenuSheet = false
+                                navController.popBackStack()
+                            }
+                        )
+
+                        ListItem(
                             headlineContent = { Text("Switch Profile") },
                             supportingContent = { Text("Current: $currentProfile") },
                             leadingContent = { Icon(Icons.Default.AccountCircle, contentDescription = null) },

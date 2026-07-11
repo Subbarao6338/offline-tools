@@ -10,11 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import omni.toolbox.ui.components.ToolScreen
 import omni.toolbox.ui.components.AdjustmentSlider
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 @Composable
 fun SleepCycleCalculator() {
@@ -180,27 +182,217 @@ fun HealthScreen(navController: NavHostController, title: String) {
             Spacer(modifier = Modifier.height(24.dp))
 
             when (title) {
-                "Sleep Tracker" -> {
-                    Text("Sleep Quality: 85%", style = MaterialTheme.typography.titleMedium)
-                    Text("Last night: 7h 45m", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text("Optimal Cycle: 11:00 PM to 7:00 AM")
+                "Posture Checker", "posture_check" -> {
+                    var headAligned by remember { mutableStateOf(true) }
+                    var shouldersAligned by remember { mutableStateOf(true) }
+                    var spineAligned by remember { mutableStateOf(true) }
+                    val ergonomicsScore = remember(headAligned, shouldersAligned, spineAligned) {
+                        var score = 100
+                        if (!headAligned) score -= 30
+                        if (!shouldersAligned) score -= 30
+                        if (!spineAligned) score -= 40
+                        score
+                    }
+                    Text("Posture Assessment & Ergonomics", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = headAligned, onCheckedChange = { headAligned = it })
+                        Text("Head Aligned (Ear over shoulder)")
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = shouldersAligned, onCheckedChange = { shouldersAligned = it })
+                        Text("Shoulders Aligned (No hunching)")
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = spineAligned, onCheckedChange = { spineAligned = it })
+                        Text("Spine Aligned (Neutral curvature)")
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Calculated Ergonomics Score:")
+                            Text("$ergonomicsScore / 100", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold, color = if(ergonomicsScore > 70) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                        }
+                    }
                 }
-                "Yoga Guide" -> {
-                    Text("Current Pose: Mountain Pose", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text("Focus on your breath and stand tall.", style = MaterialTheme.typography.bodyMedium)
+                "Eye Exercise", "eye_exercise" -> {
+                    var timeLeft by remember { mutableIntStateOf(20) }
+                    var exercisePhase by remember { mutableStateOf("Stare at 20 feet distance (20-20-20 Rule)") }
+                    var active by remember { mutableStateOf(false) }
+
+                    LaunchedEffect(active) {
+                        if (active) {
+                            while (timeLeft > 0) {
+                                delay(1000)
+                                timeLeft--
+                            }
+                            if (exercisePhase.startsWith("Stare")) {
+                                exercisePhase = "Blink rapidly to moisten eyes"
+                                timeLeft = 10
+                            } else {
+                                exercisePhase = "Finished! Eyes relaxed."
+                                active = false
+                            }
+                        }
+                    }
+
+                    Text("Guided Eye Relaxation Exercise", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(exercisePhase, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Timer: ${timeLeft}s", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { active = true; timeLeft = 20; exercisePhase = "Stare at 20 feet distance (20-20-20 Rule)" }, enabled = !active) {
+                        Text("Start Exercise")
+                    }
                 }
-                "Period Tracker" -> {
-                    Text("Next period in 12 days", style = MaterialTheme.typography.titleMedium)
-                    Text("Cycle: 28 days (Average)", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text("Last period: Oct 1 - Oct 5")
+                "Water Reminder", "water_reminder" -> {
+                    var weightStr by remember { mutableStateOf("150") }
+                    var activityMinutes by remember { mutableStateOf("30") }
+                    var cupsLogged by remember { mutableIntStateOf(0) }
+
+                    val weight = weightStr.toDoubleOrNull() ?: 150.0
+                    val act = activityMinutes.toDoubleOrNull() ?: 30.0
+                    val targetOunces = remember(weight, act) {
+                        // Formula: (Weight in lbs * 0.5) + (Activity minutes / 30 * 12)
+                        (weight * 0.5) + (act / 30.0 * 12.0)
+                    }
+
+                    Text("Hydration Target & Tracker", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(value = weightStr, onValueChange = { weightStr = it }, label = { Text("Weight (lbs)") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = activityMinutes, onValueChange = { activityMinutes = it }, label = { Text("Activity (minutes/day)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Target Hydration:")
+                            Text("${"%.1f".format(targetOunces)} oz (~${(targetOunces/8.0).toInt()} cups)", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Text("Logged Cups: $cupsLogged / ${(targetOunces/8.0).toInt()}")
+                        Row {
+                            Button(onClick = { if (cupsLogged > 0) cupsLogged-- }) { Text("-") }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(onClick = { cupsLogged++ }) { Text("+") }
+                        }
+                    }
                 }
-                "Medication Tracker", "Medication reminder" -> {
+                "Blood Sugar", "blood_sugar" -> {
+                    var fastingMode by remember { mutableStateOf(true) }
+                    var sugarLevelStr by remember { mutableStateOf("95") }
+
+                    val level = sugarLevelStr.toDoubleOrNull() ?: 0.0
+                    val diagnosis = remember(fastingMode, level) {
+                        if (level <= 0) "Enter Level"
+                        else if (fastingMode) {
+                            when {
+                                level < 70 -> "Hypoglycemia"
+                                level < 100 -> "Normal Fasting"
+                                level < 126 -> "Prediabetes (Impaired Fasting)"
+                                else -> "Diabetes"
+                            }
+                        } else {
+                            when {
+                                level < 140 -> "Normal Post-Meal"
+                                level < 200 -> "Prediabetes"
+                                else -> "Diabetes"
+                            }
+                        }
+                    }
+
+                    Text("Blood Sugar Analysis Form", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = fastingMode, onClick = { fastingMode = true })
+                        Text("Fasting (No food 8 hrs)")
+                        Spacer(modifier = Modifier.width(16.dp))
+                        RadioButton(selected = !fastingMode, onClick = { fastingMode = false })
+                        Text("Post-Meal (2 hrs after)")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(value = sugarLevelStr, onValueChange = { sugarLevelStr = it }, label = { Text("Glucose Level (mg/dL)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Estimated Assessment:")
+                            Text(diagnosis, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                "Blood Pressure", "blood_pressure" -> {
+                    var systolicStr by remember { mutableStateOf("120") }
+                    var diastolicStr by remember { mutableStateOf("80") }
+
+                    val sys = systolicStr.toIntOrNull() ?: 0
+                    val dia = diastolicStr.toIntOrNull() ?: 0
+                    val bpCategory = remember(sys, dia) {
+                        if (sys <= 0 || dia <= 0) "Enter Readings"
+                        else when {
+                            sys < 120 && dia < 80 -> "Normal BP"
+                            sys in 120..129 && dia < 80 -> "Elevated BP"
+                            sys in 130..139 || dia in 80..89 -> "Hypertension (Stage 1)"
+                            sys >= 140 || dia >= 90 -> "Hypertension (Stage 2)"
+                            else -> "Hypertensive Crisis (Consult Doctor)"
+                        }
+                    }
+
+                    Text("Blood Pressure Category Form", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(value = systolicStr, onValueChange = { systolicStr = it }, label = { Text("Systolic (top number, mmHg)") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = diastolicStr, onValueChange = { diastolicStr = it }, label = { Text("Diastolic (bottom number, mmHg)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Assessment Category:")
+                            Text(bpCategory, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                "Period Tracker", "period_tracker" -> {
+                    var lastStartStr by remember { mutableStateOf("2024-10-01") }
+                    var cycleLengthStr by remember { mutableStateOf("28") }
+
+                    val cycle = cycleLengthStr.toIntOrNull() ?: 28
+                    val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    val parsedDate = try { java.time.LocalDate.parse(lastStartStr, formatter) } catch (e: Exception) { null }
+
+                    Text("Menstrual Cycle & Fertility Predictor", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(value = lastStartStr, onValueChange = { lastStartStr = it }, label = { Text("Last Period Start (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = cycleLengthStr, onValueChange = { cycleLengthStr = it }, label = { Text("Cycle Length (Days)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (parsedDate != null) {
+                        val nextStart = parsedDate.plusDays(cycle.toLong())
+                        val ovulation = nextStart.minusDays(14)
+                        val fertileStart = ovulation.minusDays(5)
+                        val fertileEnd = ovulation.plusDays(1)
+
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Next Predicted Period Start:", fontWeight = FontWeight.Bold)
+                                Text(nextStart.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy")), style = MaterialTheme.typography.bodyLarge)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Estimated Ovulation Day:", fontWeight = FontWeight.Bold)
+                                Text(ovulation.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy")), style = MaterialTheme.typography.bodyLarge)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Fertile Window:", fontWeight = FontWeight.Bold)
+                                Text("${fertileStart.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))} to ${fertileEnd.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+                "Sleep Tracker", "Sleep Cycle", "Sleep Cycle calculator", "sleep_tracker" -> SleepCycleCalculator()
+                "Yoga Guide", "yoga_guide" -> {
+                    Text("Current Pose: Mountain Pose (Tadasana)", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text("Focus on your breath and stand tall with feet grounded.", style = MaterialTheme.typography.bodyMedium)
+                }
+                "Medication Tracker", "Medication reminder", "medication_tracker" -> {
                     MedicationReminderSystem()
                 }
-                "Sleep Cycle", "Sleep Cycle calculator", "sleep_tracker" -> SleepCycleCalculator()
                 "BMR Calculator", "bmr" -> BmrCalculator()
                 "BMI Calc", "bmi" -> {
                     var weight by remember { mutableStateOf("70") }

@@ -34,7 +34,7 @@ fun SizeCalculatorsScreen(
     showTabs: Boolean = true
 ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
-    val tabTitles = listOf("Bra", "Underwear", "Dress", "Ring", "Arm", "Body Frame", "Kids")
+    val tabTitles = listOf("Bra", "Underwear", "Dress", "Ring", "Arm", "Body Frame", "Kids", "Bangle")
 
     val screenTitle = if (showTabs) {
         "Fashion & Size Calculators"
@@ -46,7 +46,8 @@ fun SizeCalculatorsScreen(
             3 -> "Ring Size Calculator"
             4 -> "Arm & Sleeve Calculator"
             5 -> "Body Frame Calculator"
-            else -> "Kids Size Calculator"
+            6 -> "Kids Size Calculator"
+            else -> "Bangle Size Calculator"
         }
     }
 
@@ -82,8 +83,137 @@ fun SizeCalculatorsScreen(
                         3 -> RingCalculatorUI()
                         4 -> ArmCalculatorUI()
                         5 -> BodyMeasurementsUI()
-                        else -> KidsSizeCalculatorUI()
+                        6 -> KidsSizeCalculatorUI()
+                        else -> BangleCalculatorUI()
                     }
+                }
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------
+// 10. BANGLE SIZE CALCULATOR (NEW WITH DYNAMIC VISUALS)
+// ----------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BangleCalculatorUI() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var diameter by remember { mutableStateOf(prefs.getString("bangle_diameter", "57.2") ?: "51.8") }
+    var calculationType by remember { mutableIntStateOf(prefs.getInt("bangle_calc_type", 0)) } // 0: Diameter, 1: Circumference, 2: Hand Width
+
+    fun save() {
+        prefs.edit().putString("bangle_diameter", diameter).putInt("bangle_calc_type", calculationType).apply()
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Bangle Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    diameter = "57.2"
+                    calculationType = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(selected = calculationType == 0, onClick = { calculationType = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)) { Text("Diameter", fontSize = 10.sp) }
+                SegmentedButton(selected = calculationType == 1, onClick = { calculationType = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)) { Text("Circum.", fontSize = 10.sp) }
+                SegmentedButton(selected = calculationType == 2, onClick = { calculationType = 2; save() }, shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)) { Text("Hand Width", fontSize = 10.sp) }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val currentVal = diameter.toFloatOrNull() ?: 57.2f
+            when (calculationType) {
+                0 -> {
+                    Text("Inner Diameter: $diameter mm", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    val diamSliderVal = currentVal.coerceIn(50.0f, 70.0f)
+                    Slider(value = diamSliderVal, onValueChange = { diameter = "%.1f".format(it); save() }, valueRange = 50.0f..70.0f, modifier = Modifier.fillMaxWidth())
+                }
+                1 -> {
+                    val initialCirc = (currentVal * Math.PI).toFloat()
+                    Text("Inner Circumference: ${"%.1f".format(initialCirc)} mm", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    val circSliderVal = initialCirc.coerceIn(150.0f, 220.0f)
+                    Slider(value = circSliderVal, onValueChange = { diameter = "%.1f".format(it / Math.PI); save() }, valueRange = 150.0f..220.0f, modifier = Modifier.fillMaxWidth())
+                }
+                else -> {
+                    val initialHand = (currentVal + 10.0f)
+                    Text("Hand Width: ${"%.1f".format(initialHand)} mm", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    val handSliderVal = initialHand.coerceIn(60.0f, 90.0f)
+                    Slider(value = handSliderVal, onValueChange = { diameter = "%.1f".format(it - 10.0f); save() }, valueRange = 60.0f..90.0f, modifier = Modifier.fillMaxWidth())
+                }
+            }
+
+            val innerDiameterCalculated = diameter.toDoubleOrNull() ?: 57.2
+
+            if (innerDiameterCalculated > 0) {
+                val circVal = innerDiameterCalculated * Math.PI
+
+                // Standard Indian bangle sizes: diameter maps to e.g. 2-2, 2-4, 2-6, 2-8, 2-10
+                val indianSize = when {
+                    innerDiameterCalculated < 52.4 -> "2-2 (XS)"
+                    innerDiameterCalculated < 55.6 -> "2-4 (S)"
+                    innerDiameterCalculated < 58.7 -> "2-6 (M)"
+                    innerDiameterCalculated < 61.9 -> "2-8 (L)"
+                    innerDiameterCalculated < 65.1 -> "2-10 (XL)"
+                    else -> "2-12 (XXL)"
+                }
+
+                val usSize = when {
+                    innerDiameterCalculated < 52.4 -> "7.0"
+                    innerDiameterCalculated < 55.6 -> "7.5"
+                    innerDiameterCalculated < 58.7 -> "8.0"
+                    innerDiameterCalculated < 61.9 -> "8.5"
+                    innerDiameterCalculated < 65.1 -> "9.0"
+                    else -> "9.5+"
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Estimated Bangle Sizes", style = MaterialTheme.typography.labelMedium)
+                        Text("Indian: $indianSize  |  US/Intl: $usSize", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Inner Diameter: ${"%.1f".format(innerDiameterCalculated)} mm  |  Circumference: ${"%.1f".format(circVal)} mm", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text("Interactive Bangle Circle Matcher:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text("Place your physical bangle or wrist here and adjust above to match:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(160.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(140.dp)) {
+                        // Drawing dynamic bangle circle with custom scaling factor of 4.2f
+                        val scaleFactor = 4.2f
+                        val radiusPx = (innerDiameterCalculated.toFloat() / 2f) * scaleFactor
+                        drawCircle(
+                            color = Color(0xFFE91E63),
+                            radius = radiusPx,
+                            style = Stroke(width = 6f)
+                        )
+                        drawCircle(
+                            color = Color(0xFFE91E63).copy(alpha = 0.12f),
+                            radius = radiusPx
+                        )
+                    }
+                    Text("${"%.1f".format(innerDiameterCalculated)} mm", color = Color(0xFFE91E63), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
             }
         }
