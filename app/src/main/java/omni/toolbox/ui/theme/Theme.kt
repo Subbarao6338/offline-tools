@@ -33,9 +33,10 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = NeonMint,
     secondary = CarbonGray,
-    tertiary = SoftWhite,
-    background = SoftWhite,
+    tertiary = Color.White,
+    background = Color.White,
     surface = Color.White,
+    surfaceVariant = Color.White,
     onPrimary = Color.Black,
     onSecondary = Color.Black,
     onTertiary = Color.Black,
@@ -56,12 +57,25 @@ fun OmniToolboxTheme(
             if (darkTheme) {
                 darkColorScheme(primary = accentColor, background = ForestNight, surface = DeepBark)
             } else {
-                lightColorScheme(primary = accentColor, background = NatureWhite, surface = NatureWhite)
+                lightColorScheme(
+                    primary = accentColor,
+                    background = Color.White,
+                    surface = Color.White,
+                    surfaceVariant = Color.White
+                )
             }
         }
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) {
+                dynamicDarkColorScheme(context)
+            } else {
+                dynamicLightColorScheme(context).copy(
+                    background = Color.White,
+                    surface = Color.White,
+                    surfaceVariant = Color.White
+                )
+            }
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme

@@ -46,6 +46,20 @@ fun HomeScreen(
     var selectedCategory by rememberSaveable { mutableStateOf("All") }
 
     val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
+    var gridColumns by remember { mutableIntStateOf(prefs.getInt("grid_columns", 3)) }
+
+    DisposableEffect(navController) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "grid_columns") {
+                gridColumns = prefs.getInt("grid_columns", 3)
+            }
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            prefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
 
     LaunchedEffect(searchQuery) {
         delay(300)
@@ -173,7 +187,7 @@ fun HomeScreen(
 
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(100.dp),
+                    columns = GridCells.Fixed(gridColumns),
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),

@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import omni.toolbox.BuildConfig
 import omni.toolbox.model.ToolProvider
@@ -100,6 +101,9 @@ fun SettingsScreen(
             }
         }
     )
+
+    val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
+    var gridColumns by remember { mutableIntStateOf(prefs.getInt("grid_columns", 3)) }
 
     ToolScreen(title = "Settings", onBack = { navController.popBackStack() }) { padding ->
         Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp)) {
@@ -199,6 +203,43 @@ fun SettingsScreen(
                 onCheckedChange = onShowCategoryCountsChange,
                 icon = Icons.Default.Category
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.GridView, contentDescription = null)
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Home Grid Columns", style = MaterialTheme.typography.bodyLarge)
+                    Text("Choose number of columns for the home grid", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                (2..4).forEach { cols ->
+                    val isSelected = gridColumns == cols
+                    Button(
+                        onClick = {
+                            gridColumns = cols
+                            prefs.edit().putInt("grid_columns", cols).apply()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "$cols Columns",
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
