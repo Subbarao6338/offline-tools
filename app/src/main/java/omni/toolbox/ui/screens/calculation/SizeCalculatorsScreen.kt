@@ -28,24 +28,44 @@ import omni.toolbox.ui.components.ToolScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SizeCalculatorsScreen(navController: NavHostController, initialTab: Int = 0) {
+fun SizeCalculatorsScreen(
+    navController: NavHostController,
+    initialTab: Int = 0,
+    showTabs: Boolean = true
+) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     val tabTitles = listOf("Bra", "Underwear", "Dress", "Ring", "Arm", "Body Frame", "Kids")
 
-    ToolScreen(title = "Fashion & Size Calculators", onBack = { navController.popBackStack() }) { padding ->
+    val screenTitle = if (showTabs) {
+        "Fashion & Size Calculators"
+    } else {
+        when (selectedTab) {
+            0 -> "Bra Size Calculator"
+            1 -> "Underwear Size Calculator"
+            2 -> "Dress Size Calculator"
+            3 -> "Ring Size Calculator"
+            4 -> "Arm & Sleeve Calculator"
+            5 -> "Body Frame Calculator"
+            else -> "Kids Size Calculator"
+        }
+    }
+
+    ToolScreen(title = screenTitle, onBack = { navController.popBackStack() }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            ScrollableTabRow(
-                selectedTabIndex = selectedTab,
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary
-            ) {
-                tabTitles.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title) }
-                    )
+            if (showTabs) {
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTab,
+                    edgePadding = 16.dp,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    tabTitles.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { Text(title) }
+                        )
+                    }
                 }
             }
 

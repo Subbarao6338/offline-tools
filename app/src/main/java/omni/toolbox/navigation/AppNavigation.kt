@@ -419,13 +419,13 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         route == "topwear_guide" -> SizeGuideScreen(navController, initialMainTab = 0, initialSubTab = 1)
         route == "bottomwear_guide" -> SizeGuideScreen(navController, initialMainTab = 0, initialSubTab = 4)
         route == "waistwear_guide" -> SizeGuideScreen(navController, initialMainTab = 4, initialSubTab = 2)
-        route == "bra_calculator" -> SizeCalculatorsScreen(navController, initialTab = 0)
-        route == "underwear_calculator" -> SizeCalculatorsScreen(navController, initialTab = 1)
-        route == "dress_calculator" -> SizeCalculatorsScreen(navController, initialTab = 2)
-        route == "ring_calculator" -> SizeCalculatorsScreen(navController, initialTab = 3)
-        route == "arm_calculator" -> SizeCalculatorsScreen(navController, initialTab = 4)
-        route == "body_calculator" -> SizeCalculatorsScreen(navController, initialTab = 5)
-        route == "kids_calculator" -> SizeCalculatorsScreen(navController, initialTab = 6)
+        route == "bra_calculator" -> SizeCalculatorsScreen(navController, initialTab = 0, showTabs = false)
+        route == "underwear_calculator" -> SizeCalculatorsScreen(navController, initialTab = 1, showTabs = false)
+        route == "dress_calculator" -> SizeCalculatorsScreen(navController, initialTab = 2, showTabs = false)
+        route == "ring_calculator" -> SizeCalculatorsScreen(navController, initialTab = 3, showTabs = false)
+        route == "arm_calculator" -> SizeCalculatorsScreen(navController, initialTab = 4, showTabs = false)
+        route == "body_calculator" -> SizeCalculatorsScreen(navController, initialTab = 5, showTabs = false)
+        route == "kids_calculator" -> SizeCalculatorsScreen(navController, initialTab = 6, showTabs = false)
         route == "body_measurements" -> SizeGuideScreen(navController, initialMainTab = 8, initialSubTab = 1) // Using Modern for now as I renamed tabs
 
         // --- 2. Shared Multi-Category Screens ---

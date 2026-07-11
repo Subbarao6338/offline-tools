@@ -45,7 +45,7 @@ object ToolProvider {
         // 3. Calculators
         Tool("Calculators Hub", Icons.Default.Calculate, "calc_group", "Calculators", Color(0xFFFF9800),
             description = "Practical calculators for daily use.",
-            subToolRoutes = listOf("calculator", "discount", "tip", "unit_compare", "unit_price", "volume_calc", "billing", "area_calc")),
+            subToolRoutes = listOf("calculator", "discount", "tip", "unit_compare", "unit_price", "volume_calc", "billing", "area_calc", "bra_calculator", "underwear_calculator", "dress_calculator", "ring_calculator", "arm_calculator", "body_calculator", "kids_calculator", "word_rank_calc")),
 
         // 4. Cloud & Local File Explorer
         Tool("Cloud & Local Files", Icons.Default.Folder, "file_explorer_group", "Cloud & Local File Explorer", Color(0xFF2196F3),
@@ -74,7 +74,7 @@ object ToolProvider {
         // 8. Date & Time
         Tool("Date & Time Hub", Icons.Default.Schedule, "date_time_group", "Date & Time", Color(0xFF4CAF50),
             description = "Precise time tracking, timezone, and calendar tools.",
-            subToolRoutes = listOf("clock", "date_calc", "stopwatch", "world_clock")),
+            subToolRoutes = listOf("clock", "date_calc", "stopwatch", "world_clock", "panchangam", "zodiac")),
 
         // 9. Design & Creative
         Tool("Design & Creative Studio", Icons.Default.Palette, "design_tools_group", "Design & Creative", Color(0xFF00BCD4),
@@ -92,7 +92,7 @@ object ToolProvider {
                 "ascii_table", "base64", "crontab_gen", "hex_viewer", "jwt_tool", "markdown_preview",
                 "regex_tester", "url_encoder", "app_inspector", "terminal", "anagram", "case_converter",
                 "lorem", "morse", "morse_decoder", "text_diff", "word_counter", "word_frequency",
-                "word_rank_calc", "developer_console"
+                "developer_console"
             )),
 
         // 11. Documents
@@ -134,7 +134,7 @@ object ToolProvider {
             description = "Enjoy simple offline classic and fun games.",
             subToolRoutes = listOf(
                 "coin_flip", "dice_roller", "memory_game", "number_guessing", "random", "tic_tac_toe",
-                "snake", "ludo", "carroms", "chess", "game_of_life", "clash_deck", "roulette",
+                "snake", "ludo", "carroms", "game_of_life", "clash_deck", "roulette",
                 "dino_jump", "2048", "sudoku", "minesweeper"
             )),
 
@@ -182,8 +182,7 @@ object ToolProvider {
                 "clothing_sizes", "shoe_sizes", "ring_sizes", "body_measurements", "dress_guide",
                 "clothes_guide", "headwear_guide", "footwear_guide", "accessories_guide", "fashion_guide",
                 "traditional_fashion", "modern_fashion", "tribal_fashion", "indian_fashion", "world_fashion",
-                "all_countries_sizes", "topwear_guide", "bottomwear_guide", "waistwear_guide", "panchangam",
-                "zodiac", "size_guide", "fashion_materials"
+                "all_countries_sizes", "topwear_guide", "bottomwear_guide", "waistwear_guide", "size_guide", "fashion_materials"
             )),
 
         // 21. Navigation
@@ -201,8 +200,7 @@ object ToolProvider {
             description = "Log blood metrics, medication schedules, and check body posturing diagnostics.",
             subToolRoutes = listOf(
                 "heart_rate", "blood_pressure", "blood_sugar", "eye_exercise", "medication_tracker",
-                "period_tracker", "posture_check", "bra_calculator", "underwear_calculator", "dress_calculator",
-                "ring_calculator", "arm_calculator", "body_calculator", "kids_calculator"
+                "period_tracker", "posture_check"
             )),
 
         // 24. Misc
@@ -247,7 +245,7 @@ object ToolProvider {
             description = "Secure password locker, cipher tools, permission managers, and cryptographic modules.",
             subToolRoutes = listOf(
                 "app_locker", "app_permissions", "cipher_tools", "password_gen", "password_manager",
-                "perm_manager", "privacy_check", "sec_adguard", "sec_nextdns", "sec_bitwarden", "sec_ente", "security_vault"
+                "perm_manager", "privacy_check", "security_vault"
             )),
 
         // 29. Productivity
@@ -537,7 +535,6 @@ object ToolProvider {
         Tool("Terminal Emulator", Icons.Default.Terminal, "terminal", category = "Developer", isVisibleOnHome = false, isSubTool = true),
         Tool("Word Counter", Icons.Default.Abc, "word_counter", category = "Developer", isVisibleOnHome = false, isSubTool = true),
         Tool("Word Frequency", Icons.AutoMirrored.Filled.ShowChart, "word_frequency", category = "Developer", isVisibleOnHome = false, isSubTool = true),
-        Tool("Word Rank Calculator", Icons.Default.Calculate, "word_rank_calc", category = "Developer", isVisibleOnHome = false, isSubTool = true),
         Tool("Developer Console", Icons.Default.Code, "developer_console", category = "Developer", isVisibleOnHome = false, isSubTool = true),
 
         // --- DOCUMENTS ---
@@ -605,7 +602,6 @@ object ToolProvider {
         Tool("Snake", Icons.Default.Gamepad, "snake", category = "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Ludo", Icons.Default.Gamepad, "ludo", category = "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Carroms", Icons.Default.Gamepad, "carroms", category = "Games", isVisibleOnHome = false, isSubTool = true),
-        Tool("Chess", Icons.Default.Gamepad, "chess", category = "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Game of Life", Icons.Default.Grid4x4, "game_of_life", category = "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Clash Deck", Icons.Default.Style, "clash_deck", category = "Games", isVisibleOnHome = false, isSubTool = true),
         Tool("Roulette", Icons.Default.Casino, "roulette", category = "Games", isVisibleOnHome = false, isSubTool = true),
@@ -648,8 +644,8 @@ object ToolProvider {
         Tool("Topwear Guide", Icons.Default.Checkroom, "topwear_guide", category = "Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Bottomwear Guide", Icons.Default.Checkroom, "bottomwear_guide", category = "Lifestyle", isVisibleOnHome = false, isSubTool = true),
         Tool("Waistwear Guide", Icons.Default.Checkroom, "waistwear_guide", category = "Lifestyle", isVisibleOnHome = false, isSubTool = true),
-        Tool("Panchangam", Icons.Default.CalendarMonth, "panchangam", category = "Lifestyle", isVisibleOnHome = false, isSubTool = true),
-        Tool("Zodiac Finder", Icons.Default.AutoAwesome, "zodiac", category = "Lifestyle", isVisibleOnHome = false, isSubTool = true),
+        Tool("Panchangam", Icons.Default.CalendarMonth, "panchangam", category = "Date & Time", isVisibleOnHome = false, isSubTool = true),
+        Tool("Zodiac Finder", Icons.Default.AutoAwesome, "zodiac", category = "Date & Time", isVisibleOnHome = false, isSubTool = true),
         Tool("Fashion & Size Hub", Icons.Default.Checkroom, "size_guide", category = "Lifestyle", isVisibleOnHome = false, isSubTool = true),
 
         // --- NAVIGATION ---
@@ -670,13 +666,14 @@ object ToolProvider {
         Tool("Medication Tracker", Icons.Default.MedicalServices, "medication_tracker", category = "Medical", isVisibleOnHome = false, isSubTool = true),
         Tool("Period Tracker", Icons.Default.CalendarMonth, "period_tracker", category = "Medical", isVisibleOnHome = false, isSubTool = true),
         Tool("Posture Checker", Icons.Default.Accessibility, "posture_check", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Bra Calculator", Icons.Default.Calculate, "bra_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Underwear Calculator", Icons.Default.Calculate, "underwear_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Dress Calculator", Icons.Default.Calculate, "dress_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Ring Calculator", Icons.Default.Calculate, "ring_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Arm Calculator", Icons.Default.Calculate, "arm_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Body Measurements Calculator", Icons.Default.Calculate, "body_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
-        Tool("Kids Size Calculator", Icons.Default.Calculate, "kids_calculator", category = "Medical", isVisibleOnHome = false, isSubTool = true),
+        Tool("Bra Calculator", Icons.Default.Calculate, "bra_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Underwear Calculator", Icons.Default.Calculate, "underwear_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Dress Calculator", Icons.Default.Calculate, "dress_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Ring Calculator", Icons.Default.Calculate, "ring_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Arm Calculator", Icons.Default.Calculate, "arm_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Body Measurements Calculator", Icons.Default.Calculate, "body_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Kids Size Calculator", Icons.Default.Calculate, "kids_calculator", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
+        Tool("Word Rank Calculator", Icons.Default.Calculate, "word_rank_calc", category = "Calculators", isVisibleOnHome = false, isSubTool = true),
 
         // --- MISC ---
         Tool("Daily Quotes", Icons.Default.FormatQuote, "daily_quotes", category = "Misc", isVisibleOnHome = false, isSubTool = true),
@@ -845,10 +842,6 @@ object ToolProvider {
         Tool("ROI Calculator", Icons.AutoMirrored.Filled.ShowChart, "roi_calc", "Finance", isVisibleOnHome = false, isSubTool = true),
         Tool("Salary Calc", Icons.Default.Work, "salary_calc", "Finance", isVisibleOnHome = false, isSubTool = true),
         Tool("Scientific Calc", Icons.Default.Functions, "sci_calc", "Utilities", isVisibleOnHome = false, isSubTool = true),
-        Tool("AdGuard DNS", Icons.Default.Shield, "sec_adguard", "Security", isVisibleOnHome = false, isSubTool = true),
-        Tool("Bitwarden", Icons.Default.Lock, "sec_bitwarden", "Security", isVisibleOnHome = false, isSubTool = true),
-        Tool("Ente Auth", Icons.Default.VpnKey, "sec_ente", "Security", isVisibleOnHome = false, isSubTool = true),
-        Tool("NextDNS", Icons.Default.Dns, "sec_nextdns", "Security", isVisibleOnHome = false, isSubTool = true),
         Tool("Security Vault", Icons.Default.Lock, "security_vault", "Security", Color(0xFF607D8B), isVisibleOnHome = false, isSubTool = true),
         Tool("Signal Gen", Icons.Default.GraphicEq, "signal_gen_pro", "Utilities", isVisibleOnHome = false, isSubTool = true),
         Tool("SIP Calculator", Icons.Default.PieChart, "sip_calc", "Finance", isVisibleOnHome = false, isSubTool = true),

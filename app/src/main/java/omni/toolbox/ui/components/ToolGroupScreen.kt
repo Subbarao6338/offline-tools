@@ -74,25 +74,67 @@ fun ToolGroupScreen(
                     text = desc,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
 
-            subTools.forEach { tool ->
-                SubToolCard(
-                    tool = tool,
-                    isFavorite = favorites.contains(tool.route),
-                    onToggleFavorite = { onToggleFavorite(tool.route) },
-                    onClick = {
-                        navController.navigate(tool.route)
-                    },
-                    onLongClick = {
-                        if (tool.route.startsWith("dyn_link_")) {
-                            showActionsDialogForTool = tool
+            if (groupRoute == "calc_group") {
+                val coreCalcs = listOf("calculator", "sci_calc")
+                val practicalCalcs = listOf("discount", "tip", "unit_price", "unit_compare", "volume_calc")
+                val geometryCalcs = listOf("area_calc")
+                val businessCalcs = listOf("billing")
+                val sizeCalcs = listOf("bra_calculator", "underwear_calculator", "dress_calculator", "ring_calculator", "arm_calculator", "body_calculator", "kids_calculator")
+                val textCalcs = listOf("word_rank_calc")
+
+                val sections = listOf(
+                    "Core & Scientific" to coreCalcs,
+                    "Practical & Shopping" to practicalCalcs,
+                    "Geometry & Area" to geometryCalcs,
+                    "Business & Billing" to businessCalcs,
+                    "Fashion & Size" to sizeCalcs,
+                    "Text & Word Utilities" to textCalcs
+                )
+
+                sections.forEach { (sectionName, routes) ->
+                    val toolsInSection = routes.mapNotNull { route ->
+                        subTools.find { it.route == route }
+                    }
+                    if (toolsInSection.isNotEmpty()) {
+                        Text(
+                            text = sectionName,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                        )
+                        toolsInSection.forEach { tool ->
+                            SubToolCard(
+                                tool = tool,
+                                isFavorite = favorites.contains(tool.route),
+                                onToggleFavorite = { onToggleFavorite(tool.route) },
+                                onClick = { navController.navigate(tool.route) }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                }
+            } else {
+                subTools.forEach { tool ->
+                    SubToolCard(
+                        tool = tool,
+                        isFavorite = favorites.contains(tool.route),
+                        onToggleFavorite = { onToggleFavorite(tool.route) },
+                        onClick = {
+                            navController.navigate(tool.route)
+                        },
+                        onLongClick = {
+                            if (tool.route.startsWith("dyn_link_")) {
+                                showActionsDialogForTool = tool
+                            }
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
     }

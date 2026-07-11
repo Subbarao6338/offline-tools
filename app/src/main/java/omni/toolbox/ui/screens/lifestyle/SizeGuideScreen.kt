@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.compose.ui.graphics.Path
 import omni.toolbox.model.SizeChart
 import omni.toolbox.model.SizeGuideData
 import omni.toolbox.ui.components.ToolScreen
@@ -97,6 +98,10 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                item {
+                    LifestyleVisualIllustration(selectedMainTab, mainTabs[selectedMainTab])
+                }
+
                 val currentChart = currentCategories.getOrNull(selectedSubCategoryIndex)
                 if (currentChart != null) {
                     item {
@@ -138,6 +143,174 @@ fun SizeGuideScreen(navController: NavHostController, initialMainTab: Int = 0, i
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun LifestyleVisualIllustration(selectedMainTab: Int, title: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth().height(160.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                val width = size.width
+                val height = size.height
+                val centerX = width / 2f
+                val centerY = height / 2f
+
+                when (selectedMainTab) {
+                    0 -> { // Women
+                        val path = Path().apply {
+                            moveTo(centerX - 20f, centerY - 50f)
+                            lineTo(centerX + 20f, centerY - 50f)
+                            lineTo(centerX + 25f, centerY - 20f)
+                            lineTo(centerX + 60f, centerY + 50f)
+                            lineTo(centerX - 60f, centerY + 50f)
+                            lineTo(centerX - 25f, centerY - 20f)
+                            close()
+                        }
+                        drawPath(path, color = Color(0xFFE91E63).copy(alpha = 0.2f))
+                        drawPath(path, color = Color(0xFFE91E63), style = Stroke(width = 3f))
+                        drawArc(color = Color(0xFFE91E63), startAngle = 0f, sweepAngle = 180f, useCenter = false, size = Size(40f, 20f), topLeft = Offset(centerX - 20f, centerY - 60f), style = Stroke(width = 3f))
+                    }
+                    1 -> { // Men
+                        val path = Path().apply {
+                            moveTo(centerX - 40f, centerY - 50f)
+                            lineTo(centerX + 40f, centerY - 50f)
+                            lineTo(centerX + 40f, centerY + 50f)
+                            lineTo(centerX - 40f, centerY + 50f)
+                            close()
+                        }
+                        drawPath(path, color = Color(0xFF2196F3).copy(alpha = 0.2f))
+                        drawPath(path, color = Color(0xFF2196F3), style = Stroke(width = 3f))
+                        val collar = Path().apply {
+                            moveTo(centerX - 25f, centerY - 50f)
+                            lineTo(centerX, centerY - 20f)
+                            lineTo(centerX + 25f, centerY - 50f)
+                        }
+                        drawPath(collar, color = Color(0xFF2196F3), style = Stroke(width = 3f))
+                        drawLine(color = Color(0xFF2196F3), start = Offset(centerX, centerY - 20f), end = Offset(centerX, centerY + 50f), strokeWidth = 2f)
+                        drawCircle(color = Color(0xFF2196F3), radius = 3f, center = Offset(centerX, centerY))
+                        drawCircle(color = Color(0xFF2196F3), radius = 3f, center = Offset(centerX, centerY + 20f))
+                    }
+                    2 -> { // Kids
+                        val path = Path().apply {
+                            moveTo(centerX - 30f, centerY - 30f)
+                            lineTo(centerX + 30f, centerY - 30f)
+                            lineTo(centerX + 30f, centerY + 20f)
+                            lineTo(centerX + 15f, centerY + 20f)
+                            lineTo(centerX + 15f, centerY + 45f)
+                            lineTo(centerX - 15f, centerY + 45f)
+                            lineTo(centerX - 15f, centerY + 20f)
+                            lineTo(centerX - 30f, centerY + 20f)
+                            close()
+                        }
+                        drawPath(path, color = Color(0xFF8BC34A).copy(alpha = 0.2f))
+                        drawPath(path, color = Color(0xFF8BC34A), style = Stroke(width = 3f))
+                        drawLine(color = Color(0xFF8BC34A), start = Offset(centerX - 20f, centerY - 30f), end = Offset(centerX - 20f, centerY - 50f), strokeWidth = 5f)
+                        drawLine(color = Color(0xFF8BC34A), start = Offset(centerX + 20f, centerY - 30f), end = Offset(centerX + 20f, centerY - 50f), strokeWidth = 5f)
+                    }
+                    3 -> { // Footwear
+                        val path = Path().apply {
+                            moveTo(centerX - 50f, centerY - 20f)
+                            lineTo(centerX - 20f, centerY - 20f)
+                            lineTo(centerX - 10f, centerY + 10f)
+                            lineTo(centerX + 50f, centerY + 10f)
+                            lineTo(centerX + 55f, centerY + 30f)
+                            lineTo(centerX - 55f, centerY + 30f)
+                            close()
+                        }
+                        drawPath(path, color = Color(0xFFFF5722).copy(alpha = 0.2f))
+                        drawPath(path, color = Color(0xFFFF5722), style = Stroke(width = 3f))
+                        drawLine(color = Color(0xFFFF5722), start = Offset(centerX - 55f, centerY + 30f), end = Offset(centerX + 55f, centerY + 30f), strokeWidth = 4f)
+                    }
+                    4 -> { // Accessories
+                        drawCircle(color = Color(0xFFFFD700), radius = 25f, center = Offset(centerX, centerY + 15f), style = Stroke(width = 4f))
+                        val path = Path().apply {
+                            moveTo(centerX, centerY - 25f)
+                            lineTo(centerX + 15f, centerY - 10f)
+                            lineTo(centerX, centerY)
+                            lineTo(centerX - 15f, centerY - 10f)
+                            close()
+                        }
+                        drawPath(path, color = Color(0xFF00BCD4).copy(alpha = 0.4f))
+                        drawPath(path, color = Color(0xFF00BCD4), style = Stroke(width = 3f))
+                    }
+                    5 -> { // Indian
+                        val path = Path().apply {
+                            moveTo(centerX - 50f, centerY - 30f)
+                            quadraticBezierTo(centerX - 20f, centerY + 40f, centerX + 50f, centerY + 20f)
+                        }
+                        drawPath(path, color = Color(0xFF9C27B0), style = Stroke(width = 4f))
+                        val path2 = Path().apply {
+                            moveTo(centerX - 40f, centerY - 40f)
+                            quadraticBezierTo(centerX - 10f, centerY + 30f, centerX + 60f, centerY + 10f)
+                        }
+                        drawPath(path2, color = Color(0xFFE91E63), style = Stroke(width = 2f))
+                    }
+                    6 -> { // World
+                        val path = Path().apply {
+                            moveTo(centerX - 35f, centerY - 45f)
+                            lineTo(centerX + 35f, centerY - 45f)
+                            lineTo(centerX + 40f, centerY + 40f)
+                            lineTo(centerX - 40f, centerY + 40f)
+                            close()
+                        }
+                        drawPath(path, color = Color(0xFF009688).copy(alpha = 0.2f))
+                        drawPath(path, color = Color(0xFF009688), style = Stroke(width = 3f))
+                        drawLine(color = Color(0xFF009688), start = Offset(centerX - 35f, centerY - 45f), end = Offset(centerX + 20f, centerY + 15f), strokeWidth = 3f)
+                        drawLine(color = Color(0xFF009688), start = Offset(centerX + 35f, centerY - 45f), end = Offset(centerX - 20f, centerY + 15f), strokeWidth = 3f)
+                    }
+                    7 -> { // Tribal
+                        val path = Path().apply {
+                            moveTo(centerX - 80f, centerY - 10f)
+                            lineTo(centerX - 60f, centerY + 10f)
+                            lineTo(centerX - 40f, centerY - 10f)
+                            lineTo(centerX - 20f, centerY + 10f)
+                            lineTo(centerX, centerY - 10f)
+                            lineTo(centerX + 20f, centerY + 10f)
+                            lineTo(centerX + 40f, centerY - 10f)
+                            lineTo(centerX + 60f, centerY + 10f)
+                            lineTo(centerX + 80f, centerY - 10f)
+                        }
+                        drawPath(path, color = Color(0xFF795548), style = Stroke(width = 4f))
+                    }
+                    8 -> { // Modern
+                        drawOval(color = Color(0xFF607D8B).copy(alpha = 0.2f), size = Size(40f, 20f), topLeft = Offset(centerX - 45f, centerY - 10f))
+                        drawOval(color = Color(0xFF607D8B).copy(alpha = 0.2f), size = Size(40f, 20f), topLeft = Offset(centerX + 5f, centerY - 10f))
+                        drawOval(color = Color(0xFF607D8B), size = Size(40f, 20f), topLeft = Offset(centerX - 45f, centerY - 10f), style = Stroke(width = 3f))
+                        drawOval(color = Color(0xFF607D8B), size = Size(40f, 20f), topLeft = Offset(centerX + 5f, centerY - 10f), style = Stroke(width = 3f))
+                        drawLine(color = Color(0xFF607D8B), start = Offset(centerX - 5f, centerY), end = Offset(centerX + 5f, centerY), strokeWidth = 3f)
+                    }
+                    9 -> { // Global
+                        drawCircle(color = Color(0xFF03A9F4), radius = 35f, center = Offset(centerX, centerY), style = Stroke(width = 3f))
+                        drawOval(color = Color(0xFF03A9F4), size = Size(70f, 25f), topLeft = Offset(centerX - 35f, centerY - 12.5f), style = Stroke(width = 2f))
+                        drawLine(color = Color(0xFF03A9F4), start = Offset(centerX, centerY - 35f), end = Offset(centerX, centerY + 35f), strokeWidth = 2f)
+                        drawLine(color = Color(0xFF03A9F4), start = Offset(centerX - 35f, centerY), end = Offset(centerX + 35f, centerY), strokeWidth = 2f)
+                    }
+                    10 -> { // Innerwear
+                        drawArc(color = Color(0xFFE91E63), startAngle = 0f, sweepAngle = 180f, useCenter = false, size = Size(35f, 25f), topLeft = Offset(centerX - 40f, centerY - 15f), style = Stroke(width = 3f))
+                        drawArc(color = Color(0xFFE91E63), startAngle = 0f, sweepAngle = 180f, useCenter = false, size = Size(35f, 25f), topLeft = Offset(centerX + 5f, centerY - 15f), style = Stroke(width = 3f))
+                        drawLine(color = Color(0xFFE91E63), start = Offset(centerX - 5f, centerY), end = Offset(centerX + 5f, centerY), strokeWidth = 3f)
+                    }
+                    else -> { // Materials
+                        for (i in -4..4) {
+                            drawLine(color = Color(0xFF9E9E9E), start = Offset(centerX + i * 15f, centerY - 40f), end = Offset(centerX + i * 15f, centerY + 40f), strokeWidth = 2f)
+                            drawLine(color = Color(0xFF9E9E9E), start = Offset(centerX - 60f, centerY + i * 10f), end = Offset(centerX + 60f, centerY + i * 10f), strokeWidth = 2f)
+                        }
+                    }
+                }
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
+            )
         }
     }
 }
