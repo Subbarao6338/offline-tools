@@ -20,6 +20,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import omni.toolbox.model.Tool
 import omni.toolbox.model.ToolProvider
+import omni.toolbox.model.UrlLinksManager
 import omni.toolbox.ui.screens.HomeScreen
 import omni.toolbox.ui.components.ToolGroupScreen
 import omni.toolbox.ui.screens.ai.*
@@ -435,6 +436,22 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
         // --- 3. Web Tools (Dynamic URL mapping) ---
         route.startsWith("per_") || listOf("sec_adguard", "sec_nextdns", "sec_bitwarden", "sec_ente", "hub", "web", "mqtt_tester", "coin_tracker", "nft_viewer", "wallet_explorer", "currency_trends", "rain_radar").contains(route) -> {
              WebDispatcher(navController, tool)
+        }
+
+        route.startsWith("dyn_link_") -> {
+            val context = LocalContext.current
+            val linkTitle = route.substringAfter("dyn_link_")
+            val link = remember(route) {
+                UrlLinksManager.getLinks(context).find { ToolProvider.sanitizeRoute(it.title) == linkTitle }
+            }
+            if (link != null) {
+                WebToolScreen(
+                    navController = navController,
+                    initialUrl = link.url,
+                    showUrlBar = false,
+                    title = link.title
+                )
+            }
         }
 
         // --- 4. Category-Based Fallback Screens ---

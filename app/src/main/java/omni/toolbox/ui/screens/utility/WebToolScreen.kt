@@ -15,6 +15,9 @@ import android.webkit.WebSettings
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
+import androidx.webkit.ProfileStore
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -57,6 +60,36 @@ fun WebToolScreen(
     var canGoBack by remember { mutableStateOf(false) }
     var showMenuSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    fun clearProfileCookies() {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+            val profile = ProfileStore.getInstance().getOrCreateProfile(currentProfile)
+            profile.cookieManager.removeAllCookies(null)
+            profile.cookieManager.flush()
+        } else {
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
+        }
+        android.widget.Toast.makeText(context, "Cookies cleared for $currentProfile", android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    fun clearProfileCache() {
+        webView?.clearCache(true)
+        android.widget.Toast.makeText(context, "Cache cleared", android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    fun clearProfileData() {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+            val profile = ProfileStore.getInstance().getOrCreateProfile(currentProfile)
+            profile.webStorage.deleteAllData()
+        } else {
+            android.webkit.WebStorage.getInstance().deleteAllData()
+        }
+        webView?.clearFormData()
+        webView?.clearHistory()
+        webView?.clearSslPreferences()
+        android.widget.Toast.makeText(context, "Data cleared for $currentProfile", android.widget.Toast.LENGTH_SHORT).show()
+    }
 
     val desktopUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     val mobileUserAgent = remember {
@@ -177,7 +210,9 @@ fun WebToolScreen(
                                     modifier = Modifier.fillMaxWidth().clickable {
                                         currentProfile = profile
                                         prefs.edit().putString("web_profile_$title", profile).apply()
-                                        CookieManager.getInstance().removeAllCookies(null)
+                                        if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+                                            CookieManager.getInstance().removeAllCookies(null)
+                                        }
                                         webView?.reload()
                                         showProfileSwitcher = false
                                     }.padding(12.dp),
@@ -282,6 +317,38 @@ fun WebToolScreen(
                                 navController.navigate("media_grabber?url=$currentUrl")
                             }
                         )
+
+                        HorizontalDivider()
+
+                        ListItem(
+                            headlineContent = { Text("Clear Cookies") },
+                            supportingContent = { Text("Delete login sessions & cookies") },
+                            leadingContent = { Icon(Icons.Default.Cookie, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                showMenuSheet = false
+                                clearProfileCookies()
+                            }
+                        )
+
+                        ListItem(
+                            headlineContent = { Text("Clear Cache") },
+                            supportingContent = { Text("Delete cached images & temporary files") },
+                            leadingContent = { Icon(Icons.Default.DeleteOutline, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                showMenuSheet = false
+                                clearProfileCache()
+                            }
+                        )
+
+                        ListItem(
+                            headlineContent = { Text("Clear Data") },
+                            supportingContent = { Text("Delete local storage, databases & forms") },
+                            leadingContent = { Icon(Icons.Default.CleaningServices, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                showMenuSheet = false
+                                clearProfileData()
+                            }
+                        )
                     }
                 }
             }
@@ -310,13 +377,17 @@ fun WebToolScreen(
                 }
             } else {
                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    AndroidView(
-                        factory = {
-                            WebView(it).apply {
-                                layoutParams = ViewGroup.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.MATCH_PARENT
-                                )
+                    key(currentProfile) {
+                        AndroidView(
+                            factory = {
+                                WebView(it).apply {
+                                    layoutParams = ViewGroup.LayoutParams(
+                                        ViewGroup.LayoutParams.MATCH_PARENT,
+                                        ViewGroup.LayoutParams.MATCH_PARENT
+                                    )
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+                                        WebViewCompat.setProfile(this, currentProfile)
+                                    }
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                                         isLoading = true
@@ -397,10 +468,10 @@ fun WebToolScreen(
                                     cm.setAcceptCookie(true)
                                     cm.setAcceptThirdPartyCookies(this, true)
                                 }
-                                webView = this
-                            }
-                        },
-                        update = {
+                                    webView = this
+                                }
+                            },
+                            update = {
                              val improveJS = """
                                 (function() {
                                     var style = document.getElementById('omni-custom-style');
@@ -414,8 +485,9 @@ fun WebToolScreen(
                              """.trimIndent()
                              it.evaluateJavascript(improveJS, null)
                         },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }

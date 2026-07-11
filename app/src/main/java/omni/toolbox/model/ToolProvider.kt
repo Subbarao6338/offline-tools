@@ -1,5 +1,6 @@
 package omni.toolbox.model
 
+import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.*
@@ -22,7 +23,7 @@ data class Tool(
 )
 
 object ToolProvider {
-    val tools = listOf(
+    var tools: List<Tool> = listOf(
         // ==========================================
         // --- 39 TOP-LEVEL MAIN TOOLS (VISIBLE) ---
         // ==========================================
@@ -873,4 +874,106 @@ object ToolProvider {
         Tool("WIFI Analyzer", Icons.Default.Wifi, "wifi_anal", "Network", isVisibleOnHome = false, isSubTool = true),
         Tool("Pocket Piano", Icons.Default.MusicNote, "piano", "Music & Audio", isVisibleOnHome = false, isSubTool = true),
     )
+
+    fun sanitizeRoute(input: String): String {
+        return input.lowercase().replace(Regex("[^a-z0-9_]"), "_")
+    }
+
+    private fun getCategoryIcon(category: String): ImageVector {
+        return when (category) {
+            "AI" -> Icons.Default.AutoAwesome
+            "Games" -> Icons.Default.Gamepad
+            "Tools & Utilities" -> Icons.Default.Build
+            "News" -> Icons.Default.Newspaper
+            "Documents" -> Icons.Default.Description
+            "Shopping" -> Icons.Default.ShoppingBag
+            "Privacy & Security" -> Icons.Default.Shield
+            "Manga / Anime" -> Icons.Default.Movie
+            "Streaming" -> Icons.Default.PlayArrow
+            "Hosting" -> Icons.Default.Cloud
+            "Google" -> Icons.Default.AutoAwesome
+            "Windows" -> Icons.Default.Laptop
+            "Android" -> Icons.Default.Android
+            "Media" -> Icons.Default.PermMedia
+            "Govt." -> Icons.Default.AccountBalance
+            "Banking / Finance" -> Icons.Default.MonetizationOn
+            "Travel" -> Icons.Default.Flight
+            "Date & Time" -> Icons.Default.Schedule
+            "Network" -> Icons.Default.Wifi
+            "Coding" -> Icons.Default.Code
+            "Search" -> Icons.Default.Search
+            "Calculators" -> Icons.Default.Calculate
+            "Productivity" -> Icons.Default.Work
+            "Web apps" -> Icons.Default.OpenInBrowser
+            "Social" -> Icons.Default.Share
+            "Email" -> Icons.Default.Email
+            "Storage" -> Icons.Default.Storage
+            "Music" -> Icons.Default.MusicNote
+            "Jobs" -> Icons.Default.WorkOutline
+            "Perchance" -> Icons.Default.AutoAwesome
+            else -> Icons.Default.Language
+        }
+    }
+
+    private var isDynamicToolsInitialized = false
+
+    fun initializeDynamicTools(context: Context) {
+        if (isDynamicToolsInitialized) return
+        val links = UrlLinksManager.getLinks(context)
+        if (links.isEmpty()) return
+
+        val grouped = links.groupBy { it.category }
+        val linkTitles = links.map { it.title.lowercase() }.toSet()
+        val linkRoutes = links.map { sanitizeRoute(it.title) }.toSet()
+
+        // Hide any existing static tool that matches a dynamic link
+        val filteredStaticTools = tools.map { tool ->
+            val matchesName = tool.name.lowercase() in linkTitles
+            val matchesRoute = tool.route in linkRoutes || tool.route.removePrefix("sec_") in linkRoutes
+            if (matchesName || matchesRoute) {
+                tool.copy(isVisibleOnHome = false, isSubTool = true)
+            } else {
+                tool
+            }
+        }
+
+        val newTools = filteredStaticTools.toMutableList()
+
+        for ((category, categoryLinks) in grouped) {
+            val catSlug = sanitizeRoute(category)
+            val subRoutes = categoryLinks.map { "dyn_link_${sanitizeRoute(it.title)}" }
+
+            // Add Category Main Tool
+            val catMainTool = Tool(
+                name = "$category Directory",
+                icon = getCategoryIcon(category),
+                route = "dyn_cat_$catSlug",
+                category = "Web Directory",
+                color = Color(0xFF03A9F4),
+                description = "Directory of curated $category web resources and utilities.",
+                subToolRoutes = subRoutes,
+                isVisibleOnHome = true
+            )
+            newTools.add(catMainTool)
+
+            // Add Individual Subtools
+            for (link in categoryLinks) {
+                val linkSlug = sanitizeRoute(link.title)
+                val subTool = Tool(
+                    name = link.title,
+                    icon = Icons.Default.Link,
+                    route = "dyn_link_$linkSlug",
+                    category = "Web Directory",
+                    color = Color(0xFF8BC34A),
+                    description = link.url,
+                    isVisibleOnHome = false,
+                    isSubTool = true
+                )
+                newTools.add(subTool)
+            }
+        }
+
+        tools = newTools
+        isDynamicToolsInitialized = true
+    }
 }

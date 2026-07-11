@@ -1,5 +1,7 @@
 package omni.toolbox.ui.screens.calculation
 
+import android.content.Context
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -7,13 +9,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -64,44 +71,75 @@ fun SizeCalculatorsScreen(navController: NavHostController, initialTab: Int = 0)
 }
 
 // ----------------------------------------------------
-// 1. BRA SIZE CALCULATOR
+// 1. BRA SIZE CALCULATOR (IMPROVED)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BraCalculatorUI() {
-    var underbust by remember { mutableStateOf("") }
-    var bust by remember { mutableStateOf("") }
-    var unit by remember { mutableIntStateOf(0) } // 0: Inches, 1: CM
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var underbust by remember { mutableStateOf(prefs.getString("bra_underbust", "34") ?: "34") }
+    var bust by remember { mutableStateOf(prefs.getString("bra_bust", "36") ?: "36") }
+    var unit by remember { mutableIntStateOf(prefs.getInt("bra_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("bra_underbust", underbust).putString("bra_bust", bust).putInt("bra_unit", unit).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Bra Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Bra Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    underbust = "34"
+                    bust = "36"
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = unit == 0, onClick = { unit = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
-                SegmentedButton(selected = unit == 1, onClick = { unit = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = underbust,
-                onValueChange = { underbust = it },
-                label = { Text("Underbust (Band)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+            Text("Underbust (Band): $underbust ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val underMin = if(unit == 0) 24f else 60f
+            val underMax = if(unit == 0) 48f else 120f
+            val underSliderVal = (underbust.toFloatOrNull() ?: 34f).coerceIn(underMin, underMax)
+            Slider(
+                value = underSliderVal,
+                onValueChange = {
+                    underbust = "%.1f".format(it)
+                    save()
+                },
+                valueRange = underMin..underMax,
+                modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = bust,
-                onValueChange = { bust = it },
-                label = { Text("Bust Size") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+
+            Text("Bust Size: $bust ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val bustMin = if(unit == 0) 26f else 65f
+            val bustMax = if(unit == 0) 60f else 150f
+            val bustSliderVal = (bust.toFloatOrNull() ?: 36f).coerceIn(bustMin, bustMax)
+            Slider(
+                value = bustSliderVal,
+                onValueChange = {
+                    bust = "%.1f".format(it)
+                    save()
+                },
+                valueRange = bustMin..bustMax,
+                modifier = Modifier.fillMaxWidth()
             )
 
             val uValue = underbust.toDoubleOrNull() ?: 0.0
@@ -111,11 +149,15 @@ fun BraCalculatorUI() {
                 val uInches = if (unit == 1) uValue / 2.54 else uValue
                 val bInches = if (unit == 1) bValue / 2.54 else bValue
 
-                // Traditional band calculation
-                val band = if (uInches.toInt() % 2 == 0) uInches.toInt() + 4 else uInches.toInt() + 5
-                val diff = bInches - band
+                // Traditional band calculation (+4/+5 method)
+                val bandTrad = if (uInches.toInt() % 2 == 0) uInches.toInt() + 4 else uInches.toInt() + 5
+                val diffTrad = bInches - bandTrad
 
-                val cup = when {
+                // Modern band calculation (direct underbust)
+                val bandMod = if (uInches.roundToInt() % 2 == 0) uInches.roundToInt() else uInches.roundToInt() + 1
+                val diffMod = bInches - uInches
+
+                fun getCup(diff: Double): String = when {
                     diff < 1 -> "AA"
                     diff < 2 -> "A"
                     diff < 3 -> "B"
@@ -127,14 +169,19 @@ fun BraCalculatorUI() {
                     else -> "H+"
                 }
 
+                val cupTrad = getCup(diffTrad)
+                val cupMod = getCup(diffMod)
+
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Estimated US/UK Size", style = MaterialTheme.typography.labelMedium)
-                        Text("$band$cup", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        Text("Traditional Fitting (US/UK)", style = MaterialTheme.typography.labelMedium)
+                        Text("$bandTrad$cupTrad", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Modern Comfort-Fit: $bandMod$cupMod", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                         Text("EU Band Size: ${(uInches * 2.54 / 5).toInt() * 5}", style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -142,7 +189,7 @@ fun BraCalculatorUI() {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Sister Sizes (Alternate Fitting):", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Tight band alternative: ${band - 2}${nextCup(cup)}  |  Loose band alternative: ${band + 2}${prevCup(cup)}", style = MaterialTheme.typography.bodyMedium)
+                Text("Tight band option: ${bandTrad - 2}${nextCup(cupTrad)}  |  Loose band option: ${bandTrad + 2}${prevCup(cupTrad)}", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -150,6 +197,8 @@ fun BraCalculatorUI() {
     Spacer(modifier = Modifier.height(16.dp))
     BraSizeGuideUI()
 }
+
+fun Double.roundToInt(): Int = Math.round(this).toInt()
 
 fun nextCup(cup: String): String = when (cup) {
     "AA" -> "A"
@@ -210,34 +259,52 @@ fun BraSizeGuideUI() {
 }
 
 // ----------------------------------------------------
-// 2. UNDERWEAR SIZE CALCULATOR
+// 2. UNDERWEAR SIZE CALCULATOR (IMPROVED)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnderwearCalculatorUI() {
-    var waist by remember { mutableStateOf("") }
-    var hips by remember { mutableStateOf("") }
-    var genderIndex by remember { mutableIntStateOf(0) } // 0: Men, 1: Women
-    var unit by remember { mutableIntStateOf(0) } // 0: Inches, 1: CM
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var waist by remember { mutableStateOf(prefs.getString("underwear_waist", "32") ?: "32") }
+    var hips by remember { mutableStateOf(prefs.getString("underwear_hips", "38") ?: "38") }
+    var genderIndex by remember { mutableIntStateOf(prefs.getInt("underwear_gender", 0)) } // 0: Men, 1: Women
+    var unit by remember { mutableIntStateOf(prefs.getInt("underwear_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("underwear_waist", waist).putString("underwear_hips", hips).putInt("underwear_gender", genderIndex).putInt("underwear_unit", unit).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Underwear Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Underwear Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    waist = "32"
+                    hips = "38"
+                    genderIndex = 0
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { genderIndex = 0 },
+                    onClick = { genderIndex = 0; save() },
                     colors = ButtonDefaults.buttonColors(containerColor = if (genderIndex == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Men", color = if (genderIndex == 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Button(
-                    onClick = { genderIndex = 1 },
+                    onClick = { genderIndex = 1; save() },
                     colors = ButtonDefaults.buttonColors(containerColor = if (genderIndex == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -248,28 +315,40 @@ fun UnderwearCalculatorUI() {
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = unit == 0, onClick = { unit = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
-                SegmentedButton(selected = unit == 1, onClick = { unit = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = waist,
-                onValueChange = { waist = it },
-                label = { Text("Waist Measurement") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+            Text("Waist: $waist ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val waistMin = if(unit == 0) 22f else 55f
+            val waistMax = if(unit == 0) 54f else 140f
+            val waistSliderVal = (waist.toFloatOrNull() ?: 32f).coerceIn(waistMin, waistMax)
+            Slider(
+                value = waistSliderVal,
+                onValueChange = {
+                    waist = "%.1f".format(it)
+                    save()
+                },
+                valueRange = waistMin..waistMax,
+                modifier = Modifier.fillMaxWidth()
             )
 
             if (genderIndex == 1) {
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = hips,
-                    onValueChange = { hips = it },
-                    label = { Text("Hips Measurement") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                Text("Hips: $hips ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                val hipsMin = if(unit == 0) 24f else 60f
+                val hipsMax = if(unit == 0) 64f else 160f
+                val hipsSliderVal = (hips.toFloatOrNull() ?: 38f).coerceIn(hipsMin, hipsMax)
+                Slider(
+                    value = hipsSliderVal,
+                    onValueChange = {
+                        hips = "%.1f".format(it)
+                        save()
+                    },
+                    valueRange = hipsMin..hipsMax,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -280,9 +359,9 @@ fun UnderwearCalculatorUI() {
                 val wInches = if (unit == 1) wValue / 2.54 else wValue
                 val hInches = if (unit == 1) hValue / 2.54 else hValue
 
-                val calculatedSize = if (genderIndex == 0) {
+                val (calculatedSize, fitDesc) = if (genderIndex == 0) {
                     // Men Underwear Sizing
-                    when {
+                    val size = when {
                         wInches < 28 -> "XS"
                         wInches < 31 -> "S"
                         wInches < 35 -> "M"
@@ -290,10 +369,12 @@ fun UnderwearCalculatorUI() {
                         wInches < 43 -> "XL"
                         else -> "XXL"
                     }
+                    val fit = "For compressive sports fit, choose ${if(size == "XS") "XS" else "one size down"}. For standard lounge fit, select $size."
+                    Pair(size, fit)
                 } else {
-                    // Women Underwear Sizing based primarily on Hips (or waist if hips blank)
+                    // Women Underwear Sizing
                     val baseMetric = if (hInches > 0) hInches else wInches + 10
-                    when {
+                    val size = when {
                         baseMetric < 34 -> "XXS (US 0)"
                         baseMetric < 36 -> "XS (US 2)"
                         baseMetric < 38 -> "S (US 4-6)"
@@ -302,6 +383,8 @@ fun UnderwearCalculatorUI() {
                         baseMetric < 46 -> "XL (US 16)"
                         else -> "XXL (US 18+)"
                     }
+                    val fit = "Primarily determined by Hip circumference. Suggest comfort-fit: $size."
+                    Pair(size, fit)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -312,6 +395,8 @@ fun UnderwearCalculatorUI() {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Estimated Underwear Size", style = MaterialTheme.typography.labelMedium)
                         Text(calculatedSize, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(fitDesc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                     }
                 }
             }
@@ -352,36 +437,70 @@ fun UnderwearSizeGuideUI() {
 }
 
 // ----------------------------------------------------
-// 3. DRESS SIZE CALCULATOR
+// 3. DRESS SIZE CALCULATOR (IMPROVED)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DressCalculatorUI() {
-    var bust by remember { mutableStateOf("") }
-    var waist by remember { mutableStateOf("") }
-    var hips by remember { mutableStateOf("") }
-    var unit by remember { mutableIntStateOf(0) } // 0: Inches, 1: CM
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var bust by remember { mutableStateOf(prefs.getString("dress_bust", "34") ?: "34") }
+    var waist by remember { mutableStateOf(prefs.getString("dress_waist", "27") ?: "27") }
+    var hips by remember { mutableStateOf(prefs.getString("dress_hips", "37") ?: "37") }
+    var unit by remember { mutableIntStateOf(prefs.getInt("dress_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("dress_bust", bust).putString("dress_waist", waist).putString("dress_hips", hips).putInt("dress_unit", unit).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Dress Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Dress Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    bust = "34"
+                    waist = "27"
+                    hips = "37"
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = unit == 0, onClick = { unit = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
-                SegmentedButton(selected = unit == 1, onClick = { unit = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(value = bust, onValueChange = { bust = it }, label = { Text("Bust") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+            Text("Bust: $bust ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val bustMin = if(unit == 0) 26f else 65f
+            val bustMax = if(unit == 0) 56f else 140f
+            val bustSliderVal = (bust.toFloatOrNull() ?: 34f).coerceIn(bustMin, bustMax)
+            Slider(value = bustSliderVal, onValueChange = { bust = "%.1f".format(it); save() }, valueRange = bustMin..bustMax, modifier = Modifier.fillMaxWidth())
+
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = waist, onValueChange = { waist = it }, label = { Text("Waist") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+
+            Text("Waist: $waist ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val waistMin = if(unit == 0) 20f else 50f
+            val waistMax = if(unit == 0) 50f else 130f
+            val waistSliderVal = (waist.toFloatOrNull() ?: 27f).coerceIn(waistMin, waistMax)
+            Slider(value = waistSliderVal, onValueChange = { waist = "%.1f".format(it); save() }, valueRange = waistMin..waistMax, modifier = Modifier.fillMaxWidth())
+
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = hips, onValueChange = { hips = it }, label = { Text("Hips") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+
+            Text("Hips: $hips ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val hipsMin = if(unit == 0) 28f else 70f
+            val hipsMax = if(unit == 0) 60f else 150f
+            val hipsSliderVal = (hips.toFloatOrNull() ?: 37f).coerceIn(hipsMin, hipsMax)
+            Slider(value = hipsSliderVal, onValueChange = { hips = "%.1f".format(it); save() }, valueRange = hipsMin..hipsMax, modifier = Modifier.fillMaxWidth())
 
             val bValue = bust.toDoubleOrNull() ?: 0.0
             val wValue = waist.toDoubleOrNull() ?: 0.0
@@ -392,15 +511,15 @@ fun DressCalculatorUI() {
                 val wIn = if (unit == 1) wValue / 2.54 else wValue
                 val hIn = if (unit == 1) hValue / 2.54 else hValue
 
-                // Comprehensive dress sizing algorithm
-                val sizeVal = when {
-                    bIn <= 32 && wIn <= 24 && hIn <= 34 -> "XXS (US 0 / UK 4)"
-                    bIn <= 33 && wIn <= 25 && hIn <= 35 -> "XS (US 2 / UK 6)"
-                    bIn <= 35 && wIn <= 27 && hIn <= 37 -> "S (US 4-6 / UK 8-10)"
-                    bIn <= 37 && wIn <= 29 && hIn <= 39 -> "M (US 8-10 / UK 12-14)"
-                    bIn <= 40 && wIn <= 32 && hIn <= 42 -> "L (US 12-14 / UK 16-18)"
-                    bIn <= 43 && wIn <= 35 && hIn <= 45 -> "XL (US 16 / UK 20)"
-                    else -> "XXL (US 18+ / UK 22+)"
+                // Comprehensive dress sizing algorithm with multi-regional support
+                val (sizeVal, regionalMap) = when {
+                    bIn <= 31 && wIn <= 23 && hIn <= 33 -> Pair("XXS (US 0 / UK 4)", "EU: 30 | IT: 34 | FR: 32 | JP: 3")
+                    bIn <= 33 && wIn <= 25 && hIn <= 35 -> Pair("XS (US 2 / UK 6)", "EU: 32 | IT: 36 | FR: 34 | JP: 5")
+                    bIn <= 35 && wIn <= 27 && hIn <= 37 -> Pair("S (US 4-6 / UK 8-10)", "EU: 34-36 | IT: 38-40 | FR: 36-38 | JP: 7-9")
+                    bIn <= 37 && wIn <= 29 && hIn <= 39 -> Pair("M (US 8-10 / UK 12-14)", "EU: 38-40 | IT: 42-44 | FR: 40-42 | JP: 11-13")
+                    bIn <= 40 && wIn <= 32 && hIn <= 42 -> Pair("L (US 12-14 / UK 16-18)", "EU: 42-44 | IT: 46-48 | FR: 44-46 | JP: 15-17")
+                    bIn <= 43 && wIn <= 35 && hIn <= 45 -> Pair("XL (US 16 / UK 20)", "EU: 46 | IT: 50 | FR: 48 | JP: 19")
+                    else -> Pair("XXL (US 18+ / UK 22+)", "EU: 48+ | IT: 52+ | FR: 50+")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -411,6 +530,8 @@ fun DressCalculatorUI() {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Estimated Dress Size", style = MaterialTheme.typography.labelMedium)
                         Text(sizeVal, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(regionalMap, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -460,55 +581,68 @@ fun DressSizeGuideUI() {
 }
 
 // ----------------------------------------------------
-// 4. RING SIZE CALCULATOR
+// 4. RING SIZE CALCULATOR (IMPROVED - INTERACTIVE)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RingCalculatorUI() {
-    var circumference by remember { mutableStateOf("") }
-    var diameter by remember { mutableStateOf("") }
-    var calculationType by remember { mutableIntStateOf(0) } // 0: Circumference, 1: Diameter
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var circumference by remember { mutableStateOf(prefs.getString("ring_circumference", "51.8") ?: "51.8") }
+    var diameter by remember { mutableStateOf(prefs.getString("ring_diameter", "16.5") ?: "16.5") }
+    var calculationType by remember { mutableIntStateOf(prefs.getInt("ring_calc_type", 0)) } // 0: Circumference, 1: Diameter
+
+    fun save() {
+        prefs.edit().putString("ring_circumference", circumference).putString("ring_diameter", diameter).putInt("ring_calc_type", calculationType).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Ring Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Ring Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    circumference = "51.8"
+                    diameter = "16.5"
+                    calculationType = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = calculationType == 0, onClick = { calculationType = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Circumference (mm)") }
-                SegmentedButton(selected = calculationType == 1, onClick = { calculationType = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("Diameter (mm)") }
+                SegmentedButton(selected = calculationType == 0, onClick = { calculationType = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Circumference (mm)") }
+                SegmentedButton(selected = calculationType == 1, onClick = { calculationType = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("Diameter (mm)") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             if (calculationType == 0) {
-                OutlinedTextField(
-                    value = circumference,
-                    onValueChange = { circumference = it },
-                    label = { Text("Circumference of Finger (mm)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
+                Text("Circumference: $circumference mm", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                val circSliderVal = (circumference.toFloatOrNull() ?: 51.8f).coerceIn(36.5f, 75f)
+                Slider(value = circSliderVal, onValueChange = { circumference = "%.1f".format(it); save() }, valueRange = 36.5f..75f, modifier = Modifier.fillMaxWidth())
             } else {
-                OutlinedTextField(
-                    value = diameter,
-                    onValueChange = { diameter = it },
-                    label = { Text("Inner Diameter of Existing Ring (mm)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
+                Text("Inner Diameter: $diameter mm", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                val diamSliderVal = (diameter.toFloatOrNull() ?: 16.5f).coerceIn(11.6f, 24f)
+                Slider(value = diamSliderVal, onValueChange = { diameter = "%.1f".format(it); save() }, valueRange = 11.6f..24f, modifier = Modifier.fillMaxWidth())
             }
 
-            val circVal = if (calculationType == 0) circumference.toDoubleOrNull() ?: 0.0 else (diameter.toDoubleOrNull() ?: 0.0) * Math.PI
+            val circVal = if (calculationType == 0) {
+                circumference.toDoubleOrNull() ?: 0.0
+            } else {
+                (diameter.toDoubleOrNull() ?: 0.0) * Math.PI
+            }
 
             if (circVal > 0) {
-                // Calculate US ring size based on standard formula: Size = (Circumference - 36.5) / 2.58
+                // Formula: Size = (Circumference - 36.5) / 2.58
                 val rawSize = (circVal - 36.5) / 2.58
-                // round to nearest 0.5 size
                 val roundedSize = (Math.round(rawSize * 2.0) / 2.0).coerceIn(1.0, 15.0)
+                val innerDiameterCalculated = circVal / Math.PI
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(
@@ -518,9 +652,34 @@ fun RingCalculatorUI() {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Estimated US Ring Size", style = MaterialTheme.typography.labelMedium)
                         Text("Size $roundedSize", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("EU Circumference: ${circVal.toInt()} mm  |  UK: ${ukRingLetter(roundedSize)}", style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("EU Circumference: ${circVal.roundToInt()} mm  |  UK: ${ukRingLetter(roundedSize)}", style = MaterialTheme.typography.bodySmall)
                     }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text("Interactive Ring Matcher Circle:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text("Place your physical ring on the screen and adjust above to match the circle size:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(160.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(140.dp)) {
+                        // Visual scaling factor: 4f gives a nice representation
+                        val scaleFactor = 4.2f
+                        val radiusPx = (innerDiameterCalculated.toFloat() / 2f) * scaleFactor
+                        drawCircle(
+                            color = Color(0xFFE91E63),
+                            radius = radiusPx,
+                            style = Stroke(width = 6f)
+                        )
+                        drawCircle(
+                            color = Color(0xFFE91E63).copy(alpha = 0.12f),
+                            radius = radiusPx
+                        )
+                    }
+                    Text("${"%.1f".format(innerDiameterCalculated)} mm", color = Color(0xFFE91E63), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
             }
         }
@@ -599,21 +758,38 @@ fun RingSizeGuideUI() {
 }
 
 // ----------------------------------------------------
-// 5. ARM / SLEEVE SIZE CALCULATOR
+// 5. ARM / SLEEVE SIZE CALCULATOR (IMPROVED)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArmCalculatorUI() {
-    var height by remember { mutableStateOf("") }
-    var ageGroup by remember { mutableIntStateOf(0) } // 0: Men, 1: Women, 2: Boys, 3: Girls
-    var unit by remember { mutableIntStateOf(0) } // 0: Inches, 1: CM
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var height by remember { mutableStateOf(prefs.getString("arm_height", "68") ?: "68") }
+    var ageGroup by remember { mutableIntStateOf(prefs.getInt("arm_age_group", 0)) } // 0: Men, 1: Women, 2: Boys, 3: Girls
+    var unit by remember { mutableIntStateOf(prefs.getInt("arm_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("arm_height", height).putInt("arm_age_group", ageGroup).putInt("arm_unit", unit).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Arm & Sleeve Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Arm & Sleeve Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    height = "68"
+                    ageGroup = 0
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             ScrollableTabRow(
@@ -623,37 +799,32 @@ fun ArmCalculatorUI() {
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 listOf("Men", "Women", "Boys", "Girls").forEachIndexed { index, name ->
-                    Tab(selected = ageGroup == index, onClick = { ageGroup = index }, text = { Text(name, fontSize = 12.sp) })
+                    Tab(selected = ageGroup == index, onClick = { ageGroup = index; save() }, text = { Text(name, fontSize = 12.sp) })
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = unit == 0, onClick = { unit = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
-                SegmentedButton(selected = unit == 1, onClick = { unit = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = height,
-                onValueChange = { height = it },
-                label = { Text("Your Total Height") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Text("Total Height: $height ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val heightMin = if(unit == 0) 30f else 80f
+            val heightMax = if(unit == 0) 90f else 230f
+            val heightSliderVal = (height.toFloatOrNull() ?: 68f).coerceIn(heightMin, heightMax)
+            Slider(value = heightSliderVal, onValueChange = { height = "%.1f".format(it); save() }, valueRange = heightMin..heightMax, modifier = Modifier.fillMaxWidth())
 
             val hVal = height.toDoubleOrNull() ?: 0.0
 
             if (hVal > 0) {
                 val hIn = if (unit == 1) hVal / 2.54 else hVal
-
-                // Sleeve length is strongly correlated with overall height (typically height * 0.48 / 2 to find standard single arm sleeve)
                 val estimatedSleeve = hIn * 0.48
 
                 val sizeCode = if (ageGroup == 0 || ageGroup == 1) {
-                    // Adults Sizing
                     when {
                         estimatedSleeve < 30.5 -> "Short (XS / S)"
                         estimatedSleeve < 32.5 -> "Regular (M)"
@@ -661,7 +832,6 @@ fun ArmCalculatorUI() {
                         else -> "Long (XL / XXL)"
                     }
                 } else {
-                    // Kids Sizing (Boys & Girls)
                     when {
                         estimatedSleeve < 20.0 -> "Toddler (XS)"
                         estimatedSleeve < 23.0 -> "Small (6-8)"
@@ -702,34 +872,52 @@ fun ArmSizeGuideUI() {
 }
 
 // ----------------------------------------------------
-// 6. BODY MEASUREMENTS & FRAME CALCULATOR
+// 6. BODY MEASUREMENTS & FRAME CALCULATOR (IMPROVED)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BodyMeasurementsUI() {
-    var height by remember { mutableStateOf("") }
-    var wrist by remember { mutableStateOf("") }
-    var genderIndex by remember { mutableIntStateOf(0) } // 0: Men, 1: Women
-    var unit by remember { mutableIntStateOf(0) } // 0: Inches, 1: CM
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var height by remember { mutableStateOf(prefs.getString("body_height", "70") ?: "70") }
+    var wrist by remember { mutableStateOf(prefs.getString("body_wrist", "7") ?: "7") }
+    var genderIndex by remember { mutableIntStateOf(prefs.getInt("body_gender", 0)) } // 0: Men, 1: Women
+    var unit by remember { mutableIntStateOf(prefs.getInt("body_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("body_height", height).putString("body_wrist", wrist).putInt("body_gender", genderIndex).putInt("body_unit", unit).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Body Frame & Proportions Assessment", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Body Frame & Proportions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    height = "70"
+                    wrist = "7"
+                    genderIndex = 0
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { genderIndex = 0 },
+                    onClick = { genderIndex = 0; save() },
                     colors = ButtonDefaults.buttonColors(containerColor = if (genderIndex == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Men", color = if (genderIndex == 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Button(
-                    onClick = { genderIndex = 1 },
+                    onClick = { genderIndex = 1; save() },
                     colors = ButtonDefaults.buttonColors(containerColor = if (genderIndex == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -740,15 +928,25 @@ fun BodyMeasurementsUI() {
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = unit == 0, onClick = { unit = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
-                SegmentedButton(selected = unit == 1, onClick = { unit = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(value = height, onValueChange = { height = it }, label = { Text("Height") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+            Text("Height: $height ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val heightMin = if(unit == 0) 40f else 100f
+            val heightMax = if(unit == 0) 90f else 230f
+            val heightSliderVal = (height.toFloatOrNull() ?: 70f).coerceIn(heightMin, heightMax)
+            Slider(value = heightSliderVal, onValueChange = { height = "%.1f".format(it); save() }, valueRange = heightMin..heightMax, modifier = Modifier.fillMaxWidth())
+
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = wrist, onValueChange = { wrist = it }, label = { Text("Wrist Circumference") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+
+            Text("Wrist Circumference: $wrist ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val wristMin = if(unit == 0) 4f else 10f
+            val wristMax = if(unit == 0) 11f else 28f
+            val wristSliderVal = (wrist.toFloatOrNull() ?: 7f).coerceIn(wristMin, wristMax)
+            Slider(value = wristSliderVal, onValueChange = { wrist = "%.1f".format(it); save() }, valueRange = wristMin..wristMax, modifier = Modifier.fillMaxWidth())
 
             val hVal = height.toDoubleOrNull() ?: 0.0
             val wVal = wrist.toDoubleOrNull() ?: 0.0
@@ -757,7 +955,6 @@ fun BodyMeasurementsUI() {
                 val hIn = if (unit == 1) hVal / 2.54 else hVal
                 val wIn = if (unit == 1) wVal / 2.54 else wVal
 
-                // Calculate ratio to determine frame size
                 val ratio = hIn / wIn
 
                 val frameSize = if (genderIndex == 0) {
@@ -774,6 +971,12 @@ fun BodyMeasurementsUI() {
                     }
                 }
 
+                val frameDetails = when (frameSize) {
+                    "Small Frame" -> "Sleek, minimalist profiles & lightweight materials suit you best."
+                    "Medium Frame" -> "Classic and standard fits hang perfectly on your proportional build."
+                    else -> "Robust, unstructured silhouettes & heavy fabrics like denim complement your frame."
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -782,8 +985,9 @@ fun BodyMeasurementsUI() {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Assessed Body Frame Size", style = MaterialTheme.typography.labelMedium)
                         Text(frameSize, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Height-to-Wrist Ratio: %.2f".format(ratio), style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(frameDetails, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f))
+                        Text("Height-to-Wrist Ratio: %.2f".format(ratio), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
                     }
                 }
             }
@@ -806,66 +1010,108 @@ fun BodyFrameGuideUI() {
 }
 
 // ----------------------------------------------------
-// 7. KIDS SIZE CALCULATOR
+// 7. KIDS SIZE CALCULATOR (IMPROVED - HEIGHT & WEIGHT)
 // ----------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KidsSizeCalculatorUI() {
-    var ageGroup by remember { mutableIntStateOf(0) } // 0: Boys, 1: Girls
-    var age by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf("") }
-    var unit by remember { mutableIntStateOf(0) } // 0: Inches, 1: CM
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var ageGroup by remember { mutableIntStateOf(prefs.getInt("kids_gender", 0)) } // 0: Boys, 1: Girls
+    var age by remember { mutableStateOf(prefs.getString("kids_age", "4") ?: "4") }
+    var height by remember { mutableStateOf(prefs.getString("kids_height", "40") ?: "40") }
+    var weight by remember { mutableStateOf(prefs.getString("kids_weight", "35") ?: "35") }
+    var unit by remember { mutableIntStateOf(prefs.getInt("kids_unit", 0)) } // 0: Inches/Lbs, 1: CM/Kgs
+
+    fun save() {
+        prefs.edit().putString("kids_age", age).putString("kids_height", height).putString("kids_weight", weight).putInt("kids_gender", ageGroup).putInt("kids_unit", unit).apply()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Kids Growth & Clothing Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Kids Growth & Clothing Size", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    age = "4"
+                    height = "40"
+                    weight = "35"
+                    ageGroup = 0
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = ageGroup == 0, onClick = { ageGroup = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Boys") }
-                SegmentedButton(selected = ageGroup == 1, onClick = { ageGroup = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("Girls") }
+                SegmentedButton(selected = ageGroup == 0, onClick = { ageGroup = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Boys") }
+                SegmentedButton(selected = ageGroup == 1, onClick = { ageGroup = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("Girls") }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(selected = unit == 0, onClick = { unit = 0 }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
-                SegmentedButton(selected = unit == 1, onClick = { unit = 1 }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("In/Lbs") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("Cm/Kgs") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(value = age, onValueChange = { age = it }, label = { Text("Age (Years)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+            Text("Age: $age Years", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val ageSliderVal = (age.toFloatOrNull() ?: 4f).coerceIn(0f, 16f)
+            Slider(value = ageSliderVal, onValueChange = { age = "%.1f".format(it); save() }, valueRange = 0f..16f, modifier = Modifier.fillMaxWidth())
+
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = height, onValueChange = { height = it }, label = { Text("Height") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+
+            Text("Height: $height ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val heightMin = if(unit == 0) 18f else 45f
+            val heightMax = if(unit == 0) 70f else 180f
+            val heightSliderVal = (height.toFloatOrNull() ?: 40f).coerceIn(heightMin, heightMax)
+            Slider(value = heightSliderVal, onValueChange = { height = "%.1f".format(it); save() }, valueRange = heightMin..heightMax, modifier = Modifier.fillMaxWidth())
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Weight: $weight ${if(unit == 0) "lbs" else "kgs"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val weightMin = if(unit == 0) 5f else 2f
+            val weightMax = if(unit == 0) 150f else 70f
+            val weightSliderVal = (weight.toFloatOrNull() ?: 35f).coerceIn(weightMin, weightMax)
+            Slider(value = weightSliderVal, onValueChange = { weight = "%.1f".format(it); save() }, valueRange = weightMin..weightMax, modifier = Modifier.fillMaxWidth())
 
             val aVal = age.toDoubleOrNull() ?: 0.0
             val hVal = height.toDoubleOrNull() ?: 0.0
+            val wVal = weight.toDoubleOrNull() ?: 0.0
 
-            if (aVal > 0 || hVal > 0) {
+            if (aVal > 0 || hVal > 0 || wVal > 0) {
                 val finalHeight = if (hVal > 0) {
                     if (unit == 1) hVal / 2.54 else hVal
                 } else {
-                    // Estimate height based on average age development curve: base 20 inches at birth + ~3 inches per year
                     20.0 + (aVal * 3.2)
                 }
 
-                // Sizing based on Height in Inches
+                val finalWeight = if (wVal > 0) {
+                    if (unit == 1) wVal * 2.20462 else wVal
+                } else {
+                    7.0 + (aVal * 5.5)
+                }
+
+                // Sizing based on Height and Weight unified assessment
                 val estimatedSize = when {
-                    finalHeight < 24 -> "Newborn (0-3M)"
-                    finalHeight < 28 -> "Infant (6-9M)"
-                    finalHeight < 32 -> "Toddler (12-18M)"
-                    finalHeight < 36 -> "2T"
-                    finalHeight < 39 -> "3T"
-                    finalHeight < 42 -> "4T"
-                    finalHeight < 45 -> "Size 5 (S)"
-                    finalHeight < 48 -> "Size 6 (S)"
-                    finalHeight < 52 -> "Size 7-8 (M)"
-                    finalHeight < 56 -> "Size 10 (M)"
-                    finalHeight < 60 -> "Size 12-14 (L)"
+                    finalHeight < 24 || finalWeight < 12 -> "Newborn (0-3M)"
+                    finalHeight < 28 || finalWeight < 18 -> "Infant (6-9M)"
+                    finalHeight < 32 || finalWeight < 25 -> "Toddler (12-18M)"
+                    finalHeight < 36 || finalWeight < 30 -> "2T"
+                    finalHeight < 39 || finalWeight < 34 -> "3T"
+                    finalHeight < 42 || finalWeight < 38 -> "4T"
+                    finalHeight < 45 || finalWeight < 44 -> "Size 5 (S)"
+                    finalHeight < 48 || finalWeight < 50 -> "Size 6 (S)"
+                    finalHeight < 52 || finalWeight < 62 -> "Size 7-8 (M)"
+                    finalHeight < 56 || finalWeight < 75 -> "Size 10 (M)"
+                    finalHeight < 60 || finalWeight < 95 -> "Size 12-14 (L)"
                     else -> "Size 16 (XL)"
                 }
 
@@ -878,7 +1124,11 @@ fun KidsSizeCalculatorUI() {
                         Text("Estimated Kids Size", style = MaterialTheme.typography.labelMedium)
                         Text(estimatedSize, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("Height: %.1f ${if(unit == 0) "in" else "cm"}".format(if(unit == 0) finalHeight else finalHeight * 2.54), style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "Based on unified assessment of Height (%.1f in) and Weight (%.1f lbs)".format(finalHeight, finalWeight),
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
@@ -893,7 +1143,7 @@ fun KidsSizeCalculatorUI() {
 fun KidsSizeGuideUI() {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Kids standard height guide", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Text("Kids standard growth guide", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
@@ -911,11 +1161,239 @@ fun KidsSizeGuideUI() {
                     Text("50\" - 52\"", style = MaterialTheme.typography.bodySmall)
                 }
                 Column {
-                    Text("Recommended Size", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
-                    Text("2T", style = MaterialTheme.typography.bodySmall)
-                    Text("4T / XS", style = MaterialTheme.typography.bodySmall)
-                    Text("6 / S", style = MaterialTheme.typography.bodySmall)
-                    Text("8 / M", style = MaterialTheme.typography.bodySmall)
+                    Text("Avg. Weight", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
+                    Text("24 - 29 lbs", style = MaterialTheme.typography.bodySmall)
+                    Text("34 - 38 lbs", style = MaterialTheme.typography.bodySmall)
+                    Text("44 - 49 lbs", style = MaterialTheme.typography.bodySmall)
+                    Text("55 - 61 lbs", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------
+// 8. SHOE SIZE CALCULATOR (NEW WITH VISUALS)
+// ----------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShoeSizeCalculatorUI() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var length by remember { mutableStateOf(prefs.getString("shoe_length", "10") ?: "10") }
+    var gender by remember { mutableIntStateOf(prefs.getInt("shoe_gender", 0)) } // 0: Men, 1: Women, 2: Kids
+    var unit by remember { mutableIntStateOf(prefs.getInt("shoe_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("shoe_length", length).putInt("shoe_gender", gender).putInt("shoe_unit", unit).apply()
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Shoe Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    length = "10"
+                    gender = 0
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Men", "Women", "Kids").forEachIndexed { index, name ->
+                    Button(
+                        onClick = { gender = index; save() },
+                        colors = ButtonDefaults.buttonColors(containerColor = if (gender == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(name, color = if (gender == index) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Foot Length: $length ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val minLen = if(unit == 0) 4f else 10f
+            val maxLen = if(unit == 0) 14f else 35f
+            val sliderVal = (length.toFloatOrNull() ?: 10f).coerceIn(minLen, maxLen)
+            Slider(value = sliderVal, onValueChange = { length = "%.1f".format(it); save() }, valueRange = minLen..maxLen, modifier = Modifier.fillMaxWidth())
+
+            val lenVal = length.toDoubleOrNull() ?: 0.0
+            if (lenVal > 0) {
+                val lenInches = if (unit == 1) lenVal / 2.54 else lenVal
+
+                // Accurate shoe calculation formulas
+                val (usSize, ukSize, euSize) = if (gender == 0) {
+                    // Men
+                    val us = (3.0 * lenInches) - 22.0
+                    val roundedUs = (Math.round(us * 2.0) / 2.0).coerceIn(6.0, 16.0)
+                    Triple("US %.1f".format(roundedUs), "UK %.1f".format(roundedUs - 0.5), "EU %d".format(Math.round(roundedUs + 33).toInt()))
+                } else if (gender == 1) {
+                    // Women
+                    val us = (3.0 * lenInches) - 21.0
+                    val roundedUs = (Math.round(us * 2.0) / 2.0).coerceIn(4.0, 12.0)
+                    Triple("US %.1f".format(roundedUs), "UK %.1f".format(roundedUs - 2.0), "EU %d".format(Math.round(roundedUs + 31).toInt()))
+                } else {
+                    // Kids
+                    val us = (3.0 * lenInches) - 11.6
+                    val roundedUs = (Math.round(us * 2.0) / 2.0).coerceIn(1.0, 13.5)
+                    Triple("US %.1f".format(roundedUs), "UK %.1f".format(roundedUs - 0.5), "EU %d".format(Math.round(roundedUs + 15).toInt()))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Estimated Shoe Sizes", style = MaterialTheme.typography.labelMedium)
+                        Text("$usSize | $ukSize | $euSize", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text("How to Measure Foot Length:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(140.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(120.dp)) {
+                        // Draw Foot outline dynamically changing scale based on foot length input
+                        val pathWidth = 60f
+                        val pathHeight = (lenInches.toFloat() * 10f).coerceIn(60f, 130f)
+
+                        // Foot Silhouette Visual representation
+                        drawRoundRect(
+                            color = Color(0xFF2196F3).copy(alpha = 0.2f),
+                            size = size.copy(width = pathWidth, height = pathHeight),
+                            cornerRadius = CornerRadius(24f, 24f)
+                        )
+                        drawRoundRect(
+                            color = Color(0xFF2196F3),
+                            size = size.copy(width = pathWidth, height = pathHeight),
+                            cornerRadius = CornerRadius(24f, 24f),
+                            style = Stroke(width = 4f)
+                        )
+                    }
+                    Text("Foot Visual Model", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium, fontSize = 11.sp, modifier = Modifier.align(Alignment.BottomCenter))
+                }
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------
+// 9. HAT SIZE CALCULATOR (NEW WITH VISUALS)
+// ----------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HatSizeCalculatorUI() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("size_calculators", Context.MODE_PRIVATE) }
+
+    var circ by remember { mutableStateOf(prefs.getString("hat_circ", "22") ?: "22") }
+    var unit by remember { mutableIntStateOf(prefs.getInt("hat_unit", 0)) } // 0: Inches, 1: CM
+
+    fun save() {
+        prefs.edit().putString("hat_circ", circ).putInt("hat_unit", unit).apply()
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Hat / Headwear Size Calculator", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    circ = "22"
+                    unit = 0
+                    save()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(selected = unit == 0, onClick = { unit = 0; save() }, shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)) { Text("Inches") }
+                SegmentedButton(selected = unit == 1, onClick = { unit = 1; save() }, shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)) { Text("CM") }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Head Circumference: $circ ${if(unit == 0) "in" else "cm"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            val minCirc = if(unit == 0) 18f else 45f
+            val maxCirc = if(unit == 0) 26f else 66f
+            val sliderVal = (circ.toFloatOrNull() ?: 22f).coerceIn(minCirc, maxCirc)
+            Slider(value = sliderVal, onValueChange = { circ = "%.1f".format(it); save() }, valueRange = minCirc..maxCirc, modifier = Modifier.fillMaxWidth())
+
+            val circVal = circ.toDoubleOrNull() ?: 0.0
+            if (circVal > 0) {
+                val circInches = if (unit == 1) circVal / 2.54 else circVal
+
+                // Hat sizes
+                val (usHatSize, intHatSize) = when {
+                    circInches < 21.125 -> Pair("6 5/8", "XS")
+                    circInches < 21.5 -> Pair("6 3/4", "S")
+                    circInches < 21.875 -> Pair("6 7/8", "S")
+                    circInches < 22.25 -> Pair("7", "M")
+                    circInches < 22.625 -> Pair("7 1/8", "M")
+                    circInches < 23.0 -> Pair("7 1/4", "L")
+                    circInches < 23.375 -> Pair("7 3/8", "L")
+                    circInches < 23.75 -> Pair("7 1/2", "XL")
+                    circInches < 24.125 -> Pair("7 5/8", "XL")
+                    else -> Pair("7 3/4+", "XXL")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Estimated Hat Size", style = MaterialTheme.typography.labelMedium)
+                        Text("US Hat Size: $usHatSize", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text("International: $intHatSize", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(140.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(100.dp)) {
+                        // Drawing dynamic head contour
+                        val scaleFactor = (circInches.toFloat() * 1.5f).coerceIn(30f, 60f)
+                        drawCircle(
+                            color = Color(0xFFFF9800).copy(alpha = 0.2f),
+                            radius = scaleFactor
+                        )
+                        drawCircle(
+                            color = Color(0xFFFF9800),
+                            radius = scaleFactor,
+                            style = Stroke(width = 4f)
+                        )
+                    }
+                    Text("Hat Contour Model", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium, fontSize = 11.sp, modifier = Modifier.align(Alignment.BottomCenter))
                 }
             }
         }
