@@ -19,6 +19,31 @@ object SizeGuideData {
                 SizeRow(listOf("14", "18", "46", "50", "48", "19", "18", "XXL")),
                 SizeRow(listOf("16", "20", "48", "52", "50", "21", "20", "XXXL"))
             )
+        ),
+        SizeChart(
+            "Vintage Dress Sizing (US)",
+            listOf("Modern Size", "1950s Size", "1970s Size", "1990s Size"),
+            listOf(
+                SizeRow(listOf("US 0 (XS)", "Size 8-10", "Size 4-6", "Size 2")),
+                SizeRow(listOf("US 2 (XS)", "Size 12", "Size 8", "Size 4")),
+                SizeRow(listOf("US 4 (S)", "Size 14", "Size 10", "Size 6")),
+                SizeRow(listOf("US 6 (S)", "Size 16", "Size 12", "Size 8")),
+                SizeRow(listOf("US 8 (M)", "Size 18", "Size 14", "Size 10")),
+                SizeRow(listOf("US 10 (M)", "Size 20", "Size 16", "Size 12")),
+                SizeRow(listOf("US 12 (L)", "Size 22", "Size 18", "Size 14")),
+                SizeRow(listOf("US 14 (L)", "Size 24", "Size 20", "Size 16"))
+            )
+        ),
+        SizeChart(
+            "Body Shape Dress Suitability",
+            listOf("Body Shape", "Highly Suitable Dress Cuts", "Avoid or Wear with Caution"),
+            listOf(
+                SizeRow(listOf("Hourglass", "Wrap, Bodycon, Belted, Mermaid", "Oversized, shapeless boxy cuts")),
+                SizeRow(listOf("Pear (Triangle)", "A-line, Fit-and-flare, Off-shoulder, Empire", "Tight bodycon, drop waist")),
+                SizeRow(listOf("Apple (Inverted)", "Empire waist, Shift, Wrap, V-neck", "High waistlines, tight waistbands")),
+                SizeRow(listOf("Rectangle", "Belted, Sheath, Ruched, Pleated", "Very stiff or shapeless fabrics")),
+                SizeRow(listOf("Inverted Triangle", "Peplum, Wide A-line, Deep V-neck", "Puff sleeves, boat necks, halter necks"))
+            )
         )
     )
 

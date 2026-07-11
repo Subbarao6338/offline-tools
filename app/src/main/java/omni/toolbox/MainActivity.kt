@@ -26,6 +26,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PDFBoxResourceLoader.init(applicationContext)
+        omni.toolbox.model.ToolProvider.initializeDynamicTools(applicationContext)
         intentState.value = intent
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
         setContent {
