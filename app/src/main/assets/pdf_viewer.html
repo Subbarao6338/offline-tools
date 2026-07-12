@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="file:///android_asset/pdf.min.js"></script>
+    <style>
+        body { margin: 0; padding: 16px; background-color: #f5f5f5; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        #canvas-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 70px; }
+        canvas { box-shadow: 0 4px 8px rgba(0,0,0,0.15); max-width: 100%; background-color: white; border-radius: 4px; margin-top: 10px; }
+        #controls { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 24px; display: flex; gap: 20px; align-items: center; z-index: 1000; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        button { background: none; border: none; color: white; font-weight: bold; font-size: 14px; cursor: pointer; padding: 5px 10px; }
+        button:active { opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button onclick="prevPage()">Prev</button>
+        <span id="page-num">Page 1 of 1</span>
+        <button onclick="nextPage()">Next</button>
+    </div>
+    <div id="canvas-container">
+        <canvas id="pdf-canvas"></canvas>
+    </div>
+
+    <script>
+        var pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'file:///android_asset/pdf.worker.min.js';
+
+        var pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.getElementById('pdf-canvas'),
+            ctx = canvas.getContext('2d');
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                var viewport = page.getViewport({scale: scale});
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                var renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                var renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            document.getElementById('page-num').textContent = "Page " + num + " of " + pdfDoc.numPages;
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function prevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        pdfjsLib.getDocument('https://localpdf/document.pdf').promise.then(function(pdfDoc_) {
+            pdfDoc = pdfDoc_;
+            renderPage(pageNum);
+        });
+    </script>
+</body>
+</html>

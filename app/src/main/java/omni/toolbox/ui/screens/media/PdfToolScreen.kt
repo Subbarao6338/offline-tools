@@ -2,6 +2,9 @@ package omni.toolbox.ui.screens.media
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.ui.viewinterop.AndroidView
 import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
@@ -50,22 +53,28 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
     val scope = rememberCoroutineScope()
 
     ToolScreen(title = title, onBack = { navController.popBackStack() }, toolRoute = "pdf_tools_group") { padding ->
+        val isPreviewMode = title == "Preview PDF" && selectedFiles.isNotEmpty()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .then(
+                    if (isPreviewMode) Modifier else Modifier.verticalScroll(rememberScrollState())
+                )
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(getPdfToolDescription(title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+            if (!isPreviewMode) {
+                Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(getPdfToolDescription(title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             if (selectedFiles.isEmpty() && title != "Text to PDF") {
                 Button(onClick = {
@@ -78,6 +87,21 @@ fun PdfToolScreen(navController: NavHostController, title: String) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(if (title == "Images to PDF") "Select Images" else "Select PDF Files")
+                }
+            } else if (title == "Preview PDF" && selectedFiles.isNotEmpty()) {
+                Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { selectedFiles = emptyList() },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Select Another PDF File")
+                    }
+                    PdfWebViewPreview(
+                        uri = selectedFiles[0],
+                        modifier = Modifier.weight(1f).fillMaxWidth()
+                    )
                 }
             } else if (selectedFiles.isNotEmpty() || title == "Text to PDF") {
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -589,4 +613,49 @@ fun getPdfToolDescription(title: String): String {
         "PDF to MHTML" -> "Convert PDF documents to MHTML web archive format."
         else -> "Professional PDF manipulation tool."
     }
+}
+
+@Composable
+fun PdfWebViewPreview(uri: Uri, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+
+    AndroidView(
+        factory = { ctx ->
+            WebView(ctx).apply {
+                webViewClient = object : android.webkit.WebViewClient() {
+                    override fun shouldInterceptRequest(
+                        view: WebView?,
+                        request: android.webkit.WebResourceRequest?
+                    ): android.webkit.WebResourceResponse? {
+                        val url = request?.url?.toString() ?: return null
+                        if (url == "https://localpdf/document.pdf") {
+                            try {
+                                val inputStream = context.contentResolver.openInputStream(uri)
+                                return android.webkit.WebResourceResponse("application/pdf", "UTF-8", inputStream)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                        return super.shouldInterceptRequest(view, request)
+                    }
+                }
+                @Suppress("SetJavaScriptEnabled")
+                settings.javaScriptEnabled = true
+                settings.allowFileAccess = true
+                settings.allowContentAccess = true
+                @Suppress("deprecation")
+                settings.allowUniversalAccessFromFileURLs = true
+                @Suppress("deprecation")
+                settings.allowFileAccessFromFileURLs = true
+                settings.builtInZoomControls = true
+                settings.displayZoomControls = false
+                settings.setSupportZoom(true)
+                loadUrl("file:///android_asset/pdf_viewer.html")
+            }
+        },
+        update = {
+            // No-op to prevent infinite recomposition reloads
+        },
+        modifier = modifier.fillMaxSize()
+    )
 }

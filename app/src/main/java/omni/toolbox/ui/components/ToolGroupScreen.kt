@@ -224,8 +224,7 @@ fun ToolGroupScreen(
                                     IconButton(
                                         onClick = {
                                             try {
-                                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                                                context.startActivity(intent)
+                                                navController.navigate("web?url=${android.net.Uri.encode(url)}&showBar=true")
                                             } catch (e: Exception) {
                                                 android.widget.Toast.makeText(context, "Cannot open URL", android.widget.Toast.LENGTH_SHORT).show()
                                             }
