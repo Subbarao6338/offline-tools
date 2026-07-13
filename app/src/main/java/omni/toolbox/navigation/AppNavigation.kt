@@ -326,6 +326,7 @@ fun ToolScreenDispatcher(navController: NavHostController, tool: Tool, aiApiKey:
 
         route == "csv_to_json" -> CsvToJsonScreen(navController)
         route == "json" -> JsonFormatterScreen(navController)
+        route == "yaml_to_json" -> DeveloperExpertScreen(navController, tool.name)
         listOf("anomaly_detection", "data_profiling", "data_statistics", "data_visualisations", "synthetic_data_gen", "data_quality", "data_cleaning", "data_transformation").contains(route) -> DataToolScreen(navController, route, tool.name)
         route.startsWith("pdf_") || route == "images_to_pdf" -> PdfToolScreen(navController, tool.name)
 
@@ -514,7 +515,7 @@ fun CategoryFallbackDispatcher(navController: NavHostController, tool: Tool, aiA
         "Web" -> WebToolScreen(navController, initialUrl = "https://www.google.com", title = tool.name)
         "Design" -> ColorToolsScreen(navController)
         "AI Tools" -> ChatToolScreen(navController, tool.name, aiApiKey)
-        else -> DashboardScreen(navController)
+        else -> SystemLabScreen(navController, tool.name)
     }
 }
 
