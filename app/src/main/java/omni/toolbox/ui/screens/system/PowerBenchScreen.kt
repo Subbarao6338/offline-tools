@@ -109,12 +109,34 @@ fun PowerBenchScreen(navController: NavHostController) {
                         }
                         logs.add("> I/O Task Finished: $ioScore pts")
 
-                        // GPU Benchmark: Mocked with intensive calculation
+                        // GPU Benchmark: Intensive Mandelbrot Set Vector Math Calculation
                         logs.add("> Profiling Mandelbrot vector scaling...")
-                        repeat(10) {
-                            gpuScore += (500..800).random()
-                            delay(100)
+                        withContext(Dispatchers.Default) {
+                            val startTime = System.currentTimeMillis()
+                            val width = 200
+                            val height = 200
+                            val maxIter = 500
+                            var totalIterations = 0
+                            for (y in 0 until height) {
+                                for (x in 0 until width) {
+                                    val cr = (x - width / 2.0) * 4.0 / width
+                                    val ci = (y - height / 2.0) * 4.0 / height
+                                    var zr = 0.0
+                                    var zi = 0.0
+                                    var iter = 0
+                                    while (zr * zr + zi * zi < 4.0 && iter < maxIter) {
+                                        val temp = zr * zr - zi * zi + cr
+                                        zi = 2.0 * zr * zi + ci
+                                        zr = temp
+                                        iter++
+                                    }
+                                    totalIterations += iter
+                                }
+                            }
+                            val duration = System.currentTimeMillis() - startTime
+                            gpuScore = (25000000 / duration.coerceAtLeast(1L)).toInt().coerceAtMost(8000)
                         }
+                        logs.add("> GPU Task Finished: $gpuScore pts")
 
                         logs.add("> [OK] Benchmark complete. Scores saved.")
                         isRunning = false
