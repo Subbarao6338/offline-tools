@@ -19,6 +19,7 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import androidx.webkit.ProfileStore
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -362,41 +363,18 @@ fun WebToolScreen(
                 }
             }
 
-            if (showAnalysis) {
-                WebAnalysisView(webView?.url ?: urlToLoad)
-            } else if (isOffline) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.WifiOff,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Text("No Internet Connection", style = MaterialTheme.typography.titleLarge)
-                        Button(onClick = {
-                            isOffline = !checkConnectivity()
-                            if (!isOffline) {
-                                webView?.loadUrl(urlToLoad)
-                            }
-                        }) {
-                            Text("Retry")
-                        }
-                    }
-                }
-            } else {
-                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    key(currentProfile) {
-                        AndroidView(
-                            factory = {
-                                WebView(it).apply {
-                                    layoutParams = ViewGroup.LayoutParams(
-                                        ViewGroup.LayoutParams.MATCH_PARENT,
-                                        ViewGroup.LayoutParams.MATCH_PARENT
-                                    )
-                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
-                                        WebViewCompat.setProfile(this, currentProfile)
-                                    }
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                key(currentProfile) {
+                    AndroidView(
+                        factory = {
+                            WebView(it).apply {
+                                layoutParams = ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT
+                                )
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+                                    WebViewCompat.setProfile(this, currentProfile)
+                                }
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                                         isLoading = true
@@ -418,6 +396,18 @@ fun WebToolScreen(
                                         isLoading = false
                                         canGoBack = view?.canGoBack() ?: false
                                         super.onPageFinished(view, url)
+                                        val improveJS = """
+                                            (function() {
+                                                var style = document.getElementById('omni-custom-style');
+                                                if (!style) {
+                                                    style = document.createElement('style');
+                                                    style.id = 'omni-custom-style';
+                                                    style.innerHTML = '.ad-unit, .adsbygoogle, #google_ads_frame, .perchance-ad, iframe[src*="googleads"] { display: none !important; }';
+                                                    document.head.appendChild(style);
+                                                }
+                                            })();
+                                        """.trimIndent()
+                                        view?.evaluateJavascript(improveJS, null)
                                     }
 
                                     override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
@@ -477,25 +467,52 @@ fun WebToolScreen(
                                     cm.setAcceptCookie(true)
                                     cm.setAcceptThirdPartyCookies(this, true)
                                 }
-                                    webView = this
-                                }
-                            },
-                            update = {
-                             val improveJS = """
-                                (function() {
-                                    var style = document.getElementById('omni-custom-style');
-                                    if (!style) {
-                                        style = document.createElement('style');
-                                        style.id = 'omni-custom-style';
-                                        style.innerHTML = '.ad-unit, .adsbygoogle, #google_ads_frame, .perchance-ad, iframe[src*="googleads"] { display: none !important; }';
-                                        document.head.appendChild(style);
-                                    }
-                                })();
-                             """.trimIndent()
-                             it.evaluateJavascript(improveJS, null)
+                                webView = this
+                            }
                         },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        update = { },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                if (isOffline) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Default.WifiOff,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text("No Internet Connection", style = MaterialTheme.typography.titleLarge)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(onClick = {
+                                isOffline = !checkConnectivity()
+                                if (!isOffline) {
+                                    val currentUrl = webView?.url
+                                    if (currentUrl.isNullOrEmpty() || currentUrl == "about:blank") {
+                                        webView?.loadUrl(urlToLoad)
+                                    } else {
+                                        webView?.reload()
+                                    }
+                                }
+                            }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                } else if (showAnalysis) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                    ) {
+                        WebAnalysisView(webView?.url ?: urlToLoad)
                     }
                 }
             }
