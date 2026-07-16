@@ -274,7 +274,7 @@ fun NotionArchiverTab(viewModel: OmniViewModel) {
                     val root = java.io.File(folderPath)
                     if (root.exists() && root.isDirectory) {
                         val files = root.walkTopDown()
-                            .filter { it.isFile && it.extension?.lowercase() in listOf("pdf", "docx", "html", "txt", "md") }
+                            .filter { it.isFile && it.extension.lowercase() in listOf("pdf", "docx", "html", "txt", "md") }
                             .toList()
 
                         files.forEach { file ->

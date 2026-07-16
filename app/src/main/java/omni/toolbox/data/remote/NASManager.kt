@@ -6,7 +6,6 @@ import java.io.File
 
 object NASManager {
     fun connectSMB(
-        context: Context,
         server: String,
         share: String,
         user: String,

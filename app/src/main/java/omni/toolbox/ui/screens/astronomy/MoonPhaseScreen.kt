@@ -52,7 +52,6 @@ fun MoonPhaseScreen(navController: NavHostController) {
             Canvas(modifier = Modifier.size(200.dp)) {
                 drawCircle(Color.DarkGray)
 
-                val sweep = (age / 30.0 * 360.0).toFloat()
                 if (age <= 15) {
                     // Waxing
                     drawArc(

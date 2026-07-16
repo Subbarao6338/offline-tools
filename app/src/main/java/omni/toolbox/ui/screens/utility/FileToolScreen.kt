@@ -243,7 +243,7 @@ fun FileToolScreen(navController: NavHostController, title: String) {
                     "NAS" -> NASStorageView { server, share, user, pass, path ->
                         scope.launch {
                             val dest = File(context.cacheDir, "smb_download_${System.currentTimeMillis()}.tmp")
-                            val success = NASManager.connectSMB(context, server, share, user, pass, path, dest)
+                            val success = NASManager.connectSMB(server, share, user, pass, path, dest)
                             if (success) {
                                 android.widget.Toast.makeText(context, "Downloaded to ${dest.name}", android.widget.Toast.LENGTH_LONG).show()
                             } else {

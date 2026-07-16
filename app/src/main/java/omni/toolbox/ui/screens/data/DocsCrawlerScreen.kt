@@ -91,7 +91,7 @@ fun DocViewerTab(viewModel: OmniViewModel) {
                         val root = java.io.File(folderPath)
                         if (root.exists() && root.isDirectory) {
                             root.walkTopDown()
-                                .filter { it.isFile && it.extension?.lowercase() in listOf("pdf", "docx", "txt", "md") }
+                                .filter { it.isFile && it.extension.lowercase() in listOf("pdf", "docx", "txt", "md") }
                                 .forEach { file ->
                                     viewModel.addDocument(file.name, file.extension.uppercase(), "Ingested content from ${file.name}")
                                 }
@@ -228,7 +228,7 @@ fun CrawlerScraperTab(viewModel: OmniViewModel) {
 }
 
 @Composable
-fun PDFDocToolsTab(viewModel: OmniViewModel) {
+fun PDFDocToolsTab(@Suppress("UNUSED_PARAMETER") viewModel: OmniViewModel) {
     Column {
         Text("PDF & Document Tools", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))

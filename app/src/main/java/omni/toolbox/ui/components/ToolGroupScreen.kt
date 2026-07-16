@@ -24,6 +24,9 @@ import omni.toolbox.model.ToolProvider
 import omni.toolbox.model.UrlLinksManager
 import omni.toolbox.ui.components.ToolScreen
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ToolGroupScreen(
@@ -32,6 +35,7 @@ fun ToolGroupScreen(
     favorites: Set<String>,
     onToggleFavorite: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val groupTool = remember(groupRoute) {
         ToolProvider.tools.find { it.route == groupRoute }
     }
@@ -111,8 +115,14 @@ fun ToolGroupScreen(
                             SubToolCard(
                                 tool = tool,
                                 isFavorite = favorites.contains(tool.route),
-                                onToggleFavorite = { onToggleFavorite(tool.route) },
-                                onClick = { navController.navigate(tool.route) }
+                                onToggleFavorite = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onToggleFavorite(tool.route)
+                                },
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    navController.navigate(tool.route)
+                                }
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                         }
@@ -161,11 +171,16 @@ fun ToolGroupScreen(
                     SubToolCard(
                         tool = tool,
                         isFavorite = favorites.contains(tool.route),
-                        onToggleFavorite = { onToggleFavorite(tool.route) },
+                        onToggleFavorite = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onToggleFavorite(tool.route)
+                        },
                         onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             navController.navigate(tool.route)
                         },
                         onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             if (tool.route.startsWith("dyn_link_")) {
                                 showActionsDialogForTool = tool
                             }

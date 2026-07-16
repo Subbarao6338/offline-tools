@@ -156,7 +156,7 @@ fun SizeGuideScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InteractiveInlineCalculator(mainTab: Int, subTab: Int) {
+fun InteractiveInlineCalculator(mainTab: Int, @Suppress("UNUSED_PARAMETER") subTab: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
@@ -232,6 +232,7 @@ fun InteractiveInlineCalculator(mainTab: Int, subTab: Int) {
                         label = { Text("Height (inches)") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    @Suppress("UNUSED_VARIABLE")
                     val ageVal = age.toDoubleOrNull() ?: 6.0
                     val heightVal = height.toDoubleOrNull() ?: 45.0
                     val estimatedSize = when {

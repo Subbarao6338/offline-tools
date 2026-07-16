@@ -33,6 +33,9 @@ import androidx.navigation.NavHostController
 import omni.toolbox.model.Tool
 import omni.toolbox.model.ToolProvider
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -41,6 +44,7 @@ fun HomeScreen(
     favorites: Set<String>,
     onToggleFavorite: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var debouncedSearchQuery by remember { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf("All") }
@@ -103,6 +107,7 @@ fun HomeScreen(
     }
 
     fun onToolClick(route: String) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         val newRecent = (listOf(route) + recentRoutes.filter { it != route }).take(10)
         recentRoutes = newRecent
         recentPrefs.edit().putString("routes", newRecent.joinToString(",")).apply()
@@ -147,7 +152,10 @@ fun HomeScreen(
                     val recentTools = recentRoutes.mapNotNull { route -> ToolProvider.tools.find { it.route == route } }
                     items(recentTools, key = { it.route }) { tool ->
                         Surface(
-                            onClick = { onToolClick(tool.route) },
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onToolClick(tool.route)
+                            },
                             shape = CircleShape,
                             color = tool.color.copy(alpha = 0.1f),
                             border = androidx.compose.foundation.BorderStroke(1.dp, tool.color.copy(alpha = 0.2f))
@@ -177,7 +185,10 @@ fun HomeScreen(
                     val label = if (showCategoryCounts) "$category ($count)" else category
                     FilterChip(
                         selected = selectedCategory == category,
-                        onClick = { selectedCategory = category },
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            selectedCategory = category
+                        },
                         label = { Text(label) },
                         modifier = Modifier.padding(horizontal = 4.dp).animateContentSize(),
                         shape = CircleShape
@@ -197,7 +208,10 @@ fun HomeScreen(
                         ToolCard(
                             tool = tool,
                             isFavorite = favorites.contains(tool.route),
-                            onToggleFavorite = { onToggleFavorite(tool.route) },
+                            onToggleFavorite = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onToggleFavorite(tool.route)
+                            },
                             onClick = { onToolClick(tool.route) }
                         )
                     }

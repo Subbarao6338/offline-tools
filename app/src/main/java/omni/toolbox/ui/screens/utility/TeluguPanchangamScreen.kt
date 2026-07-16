@@ -35,7 +35,7 @@ import java.util.*
 @Composable
 fun TeluguPanchangamScreen(
     navController: NavHostController,
-    viewModel: OmniViewModel
+    @Suppress("UNUSED_PARAMETER") viewModel: OmniViewModel
 ) {
     val context = LocalContext.current
 
