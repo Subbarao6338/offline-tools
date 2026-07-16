@@ -28,7 +28,11 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun ImageGeneratorScreen(navController: NavHostController, aiApiKey: String = "", stableDiffusionUrl: String = "") {
+fun ImageGeneratorScreen(
+    navController: NavHostController,
+    @Suppress("UNUSED_PARAMETER") aiApiKey: String = "",
+    stableDiffusionUrl: String = ""
+) {
     var prompt by remember { mutableStateOf("") }
     var isGenerating by remember { mutableStateOf(false) }
     var generatedImage by remember { mutableStateOf<android.graphics.Bitmap?>(null) }

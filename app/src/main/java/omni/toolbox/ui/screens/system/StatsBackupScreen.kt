@@ -104,9 +104,9 @@ fun SystemDataTab(viewModel: OmniViewModel) {
     val systemHealth by viewModel.systemHealth.collectAsState()
     val wifiUsed by viewModel.wifiDataUsedMb.collectAsState()
     val mobileUsed by viewModel.mobileDataUsedMb.collectAsState()
+    @Suppress("UNUSED_VARIABLE")
     val mobileLimit by viewModel.mobileDataLimitMb.collectAsState()
     val topAppsData by viewModel.topAppsDataUsage.collectAsState()
-    val haptic = LocalHapticFeedback.current
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -163,7 +163,6 @@ fun ScreenUnlocksTab(viewModel: OmniViewModel) {
     val screenLimit by viewModel.screenLimitMinutes.collectAsState()
     val topAppsScreen by viewModel.topAppsScreenTime.collectAsState()
     val unlocksToday by viewModel.screenUnlocksToday.collectAsState()
-    val haptic = LocalHapticFeedback.current
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -204,7 +203,6 @@ fun ScreenUnlocksTab(viewModel: OmniViewModel) {
 fun NotificationLogTab(viewModel: OmniViewModel) {
     val totalCount by viewModel.notificationsCountToday.collectAsState()
     val notificationLogs by viewModel.notificationLogs.collectAsState()
-    val haptic = LocalHapticFeedback.current
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -238,7 +236,9 @@ fun NotificationLogTab(viewModel: OmniViewModel) {
 
 @Composable
 fun CallSmsBackupTab(viewModel: OmniViewModel) {
+    @Suppress("UNUSED_VARIABLE")
     val callLogs by viewModel.callLogs.collectAsState()
+    @Suppress("UNUSED_VARIABLE")
     val smsMessages by viewModel.smsMessages.collectAsState()
     val restoreLogs by viewModel.restoreLogs.collectAsState()
     val coroutineScope = rememberCoroutineScope()

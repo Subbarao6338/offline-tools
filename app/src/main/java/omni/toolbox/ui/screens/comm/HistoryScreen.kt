@@ -8,8 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CallReceived
 import androidx.compose.material.icons.automirrored.filled.CallMade
 import androidx.compose.material.icons.automirrored.filled.CallMissed
-import androidx.compose.material.icons.filled.Label
-import androidx.compose.material.icons.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -54,12 +55,12 @@ fun HistoryScreen(navController: NavHostController) {
                                 AssistChip(
                                     onClick = {},
                                     label = { Text("Business", style = MaterialTheme.typography.labelSmall) },
-                                    leadingIcon = { Icon(Icons.Default.Label, null, modifier = Modifier.size(12.dp)) }
+                                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null, modifier = Modifier.size(12.dp)) }
                                 )
                                 AssistChip(
                                     onClick = {},
                                     label = { Text("Project Alpha", style = MaterialTheme.typography.labelSmall) },
-                                    leadingIcon = { Icon(Icons.Default.NoteAdd, null, modifier = Modifier.size(12.dp)) }
+                                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.NoteAdd, null, modifier = Modifier.size(12.dp)) }
                                 )
                             }
                         }
